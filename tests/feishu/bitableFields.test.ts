@@ -4,6 +4,7 @@ import {
   extractReviewResultFromAction,
   isInterviewPendingSchedule,
   normalizeBitableFieldValue,
+  normalizeBitableTimestamp,
   normalizeOpenId,
 } from "../../src/feishu/bitableFields.js"
 
@@ -58,5 +59,10 @@ describe("bitableFields", () => {
       after_value: [{ field_id: "fld_review", field_value: "通过" }],
     })
     expect(result).toBe("通过")
+  })
+
+  it("normalizes Bitable timestamps in seconds and milliseconds", () => {
+    expect(normalizeBitableTimestamp(1_700_000_000_000)).toBe(1_700_000_000_000)
+    expect(normalizeBitableTimestamp(1_700_000_000)).toBe(1_700_000_000_000)
   })
 })

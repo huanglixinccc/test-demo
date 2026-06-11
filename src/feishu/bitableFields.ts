@@ -51,6 +51,30 @@ export function normalizeBitableFieldValue(raw: unknown): string | undefined {
   return undefined
 }
 
+/** Parse Bitable date / datetime field values to epoch milliseconds. */
+export function normalizeBitableTimestamp(raw: unknown): number | undefined {
+  if (raw == null) return undefined
+  if (typeof raw === "number") {
+    if (!Number.isFinite(raw) || raw <= 0) return undefined
+    if (raw >= 1e12) return raw
+    if (raw >= 1e9) return raw * 1000
+    return raw
+  }
+  if (typeof raw === "string") {
+    const trimmed = raw.trim()
+    if (!trimmed) return undefined
+    const n = Number(trimmed)
+    if (Number.isFinite(n) && n > 0) {
+      if (n >= 1e12) return n
+      if (n >= 1e9) return n * 1000
+      return n
+    }
+    const parsed = Date.parse(trimmed)
+    if (!Number.isNaN(parsed)) return parsed
+  }
+  return undefined
+}
+
 export function isCandidateStatus(value: string | undefined): value is CandidateStatus {
   return Boolean(value && CANDIDATE_STATUS_SET.has(value))
 }

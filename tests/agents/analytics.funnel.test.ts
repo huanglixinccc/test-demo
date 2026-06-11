@@ -43,4 +43,27 @@ describe("analytics funnel", () => {
     })
     expect(out.map((r) => r.record_id)).toEqual(["r1"])
   })
+
+  it("filterCandidates uses created_time when createdAt missing", () => {
+    const records: BitableRecord<CandidateFields>[] = [
+      {
+        record_id: "r1",
+        created_time: 100,
+        fields: { position: "前端", status: "Offer" } as CandidateFields,
+      },
+    ]
+    const out = filterCandidates(records, { startTime: 80, endTime: 150 })
+    expect(out).toHaveLength(1)
+  })
+
+  it("filterCandidates accepts createdAt in unix seconds", () => {
+    const records = [
+      rec({ position: "前端", createdAt: 1_750_000_000, status: "待筛选" }),
+    ]
+    const out = filterCandidates(records, {
+      startTime: 1_700_000_000_000,
+      endTime: 1_800_000_000_000,
+    })
+    expect(out).toHaveLength(1)
+  })
 })

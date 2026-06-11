@@ -1,6 +1,9 @@
 import type { CandidateFields, CandidateStatus } from "../../feishu/bitable.js"
 import type { BitableRecord } from "../../feishu/bitable.js"
-import { normalizeBitableFieldValue } from "../../feishu/bitableFields.js"
+import {
+  normalizeBitableFieldValue,
+  normalizeBitableTimestamp,
+} from "../../feishu/bitableFields.js"
 
 export interface FunnelStats {
   resume: number
@@ -55,9 +58,13 @@ export function filterCandidates(
 ): BitableRecord<CandidateFields>[] {
   const pos = opts.position?.trim().toLowerCase()
   return records.filter((r) => {
-    const createdAt = r.fields.createdAt ?? 0
-    if (opts.startTime != null && createdAt < opts.startTime) return false
-    if (opts.endTime != null && createdAt > opts.endTime) return false
+    const createdAt =
+      normalizeBitableTimestamp(r.fields.createdAt) ??
+      normalizeBitableTimestamp(r.created_time)
+    if (createdAt != null) {
+      if (opts.startTime != null && createdAt < opts.startTime) return false
+      if (opts.endTime != null && createdAt > opts.endTime) return false
+    }
     if (pos) {
       const position = (normalizeBitableFieldValue(r.fields.position) ?? "").toLowerCase()
       if (!position.includes(pos) && !pos.includes(position)) return false

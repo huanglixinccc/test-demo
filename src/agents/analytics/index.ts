@@ -44,18 +44,24 @@ export function registerAnalyticsAgent(deps: AnalyticsAgentDeps): void {
       endTime: range.endTime,
     })
     const stats = computeFunnel(filtered)
-    const text = buildFunnelReplyText({
+    let text = buildFunnelReplyText({
       stats,
       position: parsed.position,
       periodLabel: range.label,
     })
+    if (stats.resume === 0 && records.length > 0) {
+      const scope = parsed.position ? `「${parsed.position} · ${range.label}」` : `「${range.label}」`
+      text += `\n\n（Candidate 表共 ${records.length} 条；${scope}无匹配。可试「招聘漏斗」查全部，或确认岗位/createdAt 字段）`
+    }
 
     logger.info(
       {
         senderOpenId: payload.senderOpenId,
         position: parsed.position,
         period: parsed.period,
-        total: stats.resume,
+        totalCandidates: records.length,
+        afterFilter: filtered.length,
+        resume: stats.resume,
       },
       "analyticsAgent.reply",
     )

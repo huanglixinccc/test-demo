@@ -53,6 +53,9 @@ export interface ReferralFields {
 export interface BitableRecord<F> {
   record_id: string
   fields: F
+  /** Bitable row creation time (ms), returned by search/get APIs. */
+  created_time?: number
+  last_modified_time?: number
 }
 
 export interface BitableTableIds {
