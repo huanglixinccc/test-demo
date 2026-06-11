@@ -1,32 +1,24 @@
-# 飞书后台配置指南
+# 飞书后台 + 服务器准备指南
 
-完成以下所有步骤后，把 `.env.example` 的变量都填到 `.env` 里。
+> **重要：步骤顺序经过精心安排。** 飞书事件订阅"验证 URL"必须能访问到已部署的服务，所以**先部署，再配事件订阅**。按本文档从上往下走即可。
 
-## 1. 创建自建应用
+---
+
+## 阶段 A：飞书后台（先把可以拿到的凭证全部拿到，但暂不配事件订阅 URL）
+
+### A1. 创建自建应用
 
 1. 登录 [飞书开放平台](https://open.feishu.cn) 开发者后台
 2. 「创建企业自建应用」，填名称（例：招聘助手）、上传 logo
 3. 记录 **App ID**（`cli_xxxx`）和 **App Secret**
 
-## 2. 启用机器人
+### A2. 启用机器人
 
 应用详情 → 「应用能力」 → 添加「机器人」
 
-## 3. 配置事件订阅
+### A3. 申请权限（要审批，先申请着）
 
-应用详情 → 「事件与回调」 → 「事件订阅」
-
-- **请求地址**：`https://<你的域名>/webhook/feishu`
-- **加密策略**：开启「Encrypt Key」和「Verification Token」，**两个都记录**
-- **添加事件**：
-  - `接收消息 v1.0`：`im.message.receive_v1`
-  - `多维表格记录变更`：`drive.file.bitable_record_changed`
-
-> 启用回调后飞书会立刻向你的 URL 发 URL Verification challenge。`/webhook/feishu` 已自动处理。
-
-## 4. 申请权限
-
-应用详情 → 「权限管理」
+应用详情 → 「权限管理」 → 申请：
 
 - `im:message`
 - `im:message:send_as_bot`
@@ -34,15 +26,26 @@
 - `bitable:app`
 - `contact:user.base:readonly`
 
-> 申请完后需要管理员审批。个人版飞书自建应用通常即时生效。
+> 个人版自建应用通常即时生效，企业版需要管理员审批。
 
-## 5. 创建多维表格 + 4 张表
+### A4. 生成事件订阅的 Encrypt Key 与 Verification Token（**URL 暂时不填**）
+
+应用详情 → 「事件与回调」 → 「事件订阅」
+
+- 开启「Encrypt Key」→ 飞书自动生成一串密钥，**复制保存**
+- 开启「Verification Token」→ 同上，**复制保存**
+- 「请求地址」**暂时留空**（先不点保存也行；如果要保存，可以先填一个占位 URL）
+- 「事件订阅」列表**暂时不勾选**
+
+> 这一步的关键：Encrypt Key 和 Verification Token 是应用级别的密钥，不依赖 URL。我们只是先把它们拿到手，方便填进 `.env`。
+
+### A5. 创建多维表格 + 4 张表
 
 1. 飞书云文档 → 新建多维表格（例：`招聘助手数据库`）
-2. 创建 4 张数据表：`Candidate` / `Referral` / `Interview` / `JobDescription`
-3. 字段（必须与代码一致，列名大小写也要一致）：
+2. 在多维表格里新建 4 张数据表：`Candidate` / `Referral` / `Interview` / `JobDescription`
+3. 字段（**必须与代码一致**，列名大小写也要严格一致）：
 
-### Candidate
+#### Candidate
 | 字段名 | 类型 |
 | --- | --- |
 | candidateId | 文本 |
@@ -58,7 +61,7 @@
 | priority | 单选（高 / 中 / 低） |
 | createdAt | 日期 |
 
-### Interview
+#### Interview
 | 字段名 | 类型 |
 | --- | --- |
 | interviewId | 文本 |
@@ -72,7 +75,7 @@
 | reviewResult | 单选（通过 / 待定 / 淘汰） |
 | notificationStatus | 单选（未通知 / 已通知 / 已提醒面评） |
 
-### Referral
+#### Referral
 | 字段名 | 类型 |
 | --- | --- |
 | candidateId | 文本 |
@@ -82,7 +85,7 @@
 | referralTime | 日期 |
 | currentStatus | 文本 |
 
-### JobDescription
+#### JobDescription
 | 字段名 | 类型 |
 | --- | --- |
 | jobId | 文本 |
@@ -90,13 +93,13 @@
 | requirement | 多行文本 |
 | headCount | 数字 |
 
-## 6. 把应用加入多维表格协作者
+### A6. 把应用加为多维表格协作者
 
 打开多维表格 → 右上角「分享」/「协作者」→ 搜索你刚创建的应用名 → 添加为「可编辑」。
 
-> **不做这一步，所有 API 调用会返回 permission denied。** 这是最容易踩的坑。
+> **不做这一步，所有 Bitable API 调用都会返回 permission denied。这是最容易踩的坑。**
 
-## 7. 记录 Bitable token 与 table id
+### A7. 记录 Bitable token 与 table id
 
 打开多维表格，看浏览器 URL：
 
@@ -104,24 +107,155 @@
 https://xxx.feishu.cn/base/<APP_TOKEN>?table=<TABLE_ID>&view=...
 ```
 
-- `<APP_TOKEN>` → `FEISHU_BITABLE_APP_TOKEN`
-- 每张表点开后 URL 中的 `<TABLE_ID>` → 分别对应 `FEISHU_TABLE_CANDIDATE` / `_INTERVIEW` / `_REFERRAL` / `_JD`
+- `<APP_TOKEN>` → 对应 `.env` 里的 `FEISHU_BITABLE_APP_TOKEN`
+- 切换到不同表格 tab，URL 里 `<TABLE_ID>` 会变 → 分别记下 4 张表的 ID，对应 `FEISHU_TABLE_CANDIDATE` / `_INTERVIEW` / `_REFERRAL` / `_JD`
 
-## 8. 拿到 HR 和面试官的 open_id
+---
 
-最简方式：
+## 阶段 B：服务器（部署服务，让 webhook URL 真实可用）
 
-1. 把服务部署到云服务器并启动（见 `docs/deploy.md`）
-2. `pm2 logs recruit-agent` 或临时 `LOG_LEVEL=debug npm start`
-3. 让 HR 和面试官分别给机器人发一句话
-4. 日志里会出现 `botMessage.received` + `openId: ou_xxxx`
-5. 把这些 `ou_xxxx` 填入：
-   - HR 的填 `.env` 的 `HR_OPEN_IDS`（多个逗号分隔）
-   - 面试官的填到 Bitable Interview 表 `interviewerOpenId` 字段（每条面试记录手动填）
+此时你已经有 A 阶段拿到的 9 个值：
 
-## 9. 验证
+```
+FEISHU_APP_ID
+FEISHU_APP_SECRET
+FEISHU_VERIFICATION_TOKEN
+FEISHU_ENCRYPT_KEY
+FEISHU_BITABLE_APP_TOKEN
+FEISHU_TABLE_CANDIDATE
+FEISHU_TABLE_INTERVIEW
+FEISHU_TABLE_REFERRAL
+FEISHU_TABLE_JD
+```
 
-- `curl https://<你的域名>/health` → 返回 `{"ok":true,...}`
-- 在飞书后台「事件订阅」页面点「验证」→ 返回成功
-- 私聊机器人粘贴一段简历文本 → 应收到 "已收到，正在解析…" + 入库卡片
-- 在 Bitable Interview 表新建一行填 `candidateId` / `interviewerOpenId` / `interviewTime` → 几秒内面试官应收到面试通知卡片
+### B1. 准备 DeepSeek API Key
+
+到 [https://platform.deepseek.com](https://platform.deepseek.com) 注册账号 → 充值（最少几块钱够调几千次）→ API Keys 页面新建一个。
+
+### B2. 服务器拉代码 + 填 .env
+
+```bash
+git clone https://github.com/huanglixinccc/test-demo.git /opt/recruit-agent
+cd /opt/recruit-agent
+npm ci
+cp .env.example .env
+vim .env
+```
+
+填好阶段 A 拿到的 9 个值 + DeepSeek Key。`HR_OPEN_IDS` **先用占位符** `ou_placeholder`（后面 D 阶段再换成真实值）：
+
+```env
+FEISHU_APP_ID=cli_xxx
+FEISHU_APP_SECRET=xxx
+FEISHU_VERIFICATION_TOKEN=xxx
+FEISHU_ENCRYPT_KEY=xxx
+FEISHU_BITABLE_APP_TOKEN=xxx
+FEISHU_TABLE_CANDIDATE=tblxxx
+FEISHU_TABLE_REFERRAL=tblxxx
+FEISHU_TABLE_INTERVIEW=tblxxx
+FEISHU_TABLE_JD=tblxxx
+HR_OPEN_IDS=ou_placeholder
+DEEPSEEK_API_KEY=sk-xxx
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+PORT=3000
+LOG_LEVEL=info
+```
+
+### B3. 构建 + pm2 启动
+
+```bash
+npm run build
+mkdir -p logs
+pm2 start ecosystem.config.cjs
+pm2 save
+```
+
+### B4. Nginx 反代 + SSL
+
+参考 [`docs/deploy.md`](./deploy.md) 的 3、4 步。
+
+### B5. 验证
+
+在**任意**机器上访问：
+
+```bash
+curl https://<你的域名>/health
+# 应返回 {"ok":true,"ts":...}
+```
+
+如果返回 `{"ok":true,...}` 就 OK，服务通了。**只有这一步通过才能进入阶段 C。**
+
+---
+
+## 阶段 C：飞书后台（回过头来配事件订阅 URL）
+
+### C1. 填请求地址 + 勾选事件
+
+回到飞书后台「事件与回调」 → 「事件订阅」：
+
+- **请求地址**：`https://<你的域名>/webhook/feishu`
+- 添加事件订阅：
+  - `接收消息 v1.0`：`im.message.receive_v1`
+  - `多维表格记录变更`：`drive.file.bitable_record_changed`
+- 点「**保存**」 → 飞书会立刻发一个 URL Challenge 给你的 URL，服务里的 `/webhook/feishu` 会自动回应 → 显示「验证通过」
+
+> 如果验证失败：
+> - 检查 `pm2 logs recruit-agent --err` 看有没有报错
+> - 确认 `FEISHU_ENCRYPT_KEY` 和后台显示的一致
+> - 确认 `https://<域名>/health` 仍然可访问
+
+---
+
+## 阶段 D：抓真实 open_id，补全 .env
+
+### D1. 让 HR 和面试官各给机器人发一句话
+
+机器人在飞书里和应用同名。让 HR 账号、面试官账号分别和机器人私聊发一条消息（任意内容）。
+
+### D2. 看日志拿 open_id
+
+```bash
+pm2 logs recruit-agent | grep botMessage.received
+```
+
+会看到类似：
+
+```
+{"openId":"ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","type":"text","msg":"botMessage.received"}
+```
+
+### D3. 更新 .env，重启
+
+```bash
+vim .env
+# HR_OPEN_IDS=ou_hr1,ou_hr2   （多个用逗号分隔）
+pm2 reload recruit-agent
+```
+
+把面试官的 open_id 填到 Bitable Interview 表 `interviewerOpenId` 字段（每条面试记录手动填）。
+
+---
+
+## 阶段 E：端到端 Demo 验证
+
+按 `README.md` 末尾的"端到端 Demo 验证步骤" 6 步走一遍，看到：
+
+- ✅ 私聊机器人发简历 → 收到入库卡片
+- ✅ Bitable Candidate 表多一行
+- ✅ Bitable Interview 表新建行 → 几秒内 `interviewStatus` 变 `待面试` + 面试官收到面试卡片
+- ✅ 面试官填 `reviewResult` → 候选人 status 自动推进 + HR 收到汇总消息
+
+就算 MVP 通过。
+
+---
+
+## 卡点速查
+
+| 现象 | 在哪一阶段 | 排查 |
+| --- | --- | --- |
+| 看不到 Encrypt Key/Verification Token | A4 | 必须先点「开启加密策略」/「Verification Token」开关 |
+| `/health` 返回 502/超时 | B5 | Nginx 没起 / pm2 没起 / 防火墙没开 443 |
+| 飞书后台点保存说 URL 验证失败 | C1 | 看 `pm2 logs --err` → 大概率是 `FEISHU_ENCRYPT_KEY` 没填对 |
+| 机器人收到消息但 Bitable 写不进 | E | 应用没加到多维表格协作者（A6 漏了） |
+| 面试官没收到面试通知 | E | Bitable Interview 行的 `interviewerOpenId` 字段没填，或 open_id 拼错 |
