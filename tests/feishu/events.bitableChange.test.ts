@@ -51,6 +51,32 @@ describe("bitable change handler", () => {
     expect(got).toHaveBeenCalledWith(expect.objectContaining({ interviewerOpenId: "ou_int" }))
   })
 
+  it("emits InterviewScheduled when status is empty (Feishu auto-save UX)", async () => {
+    const bitable = {
+      getInterview: vi.fn().mockResolvedValue({
+        record_id: "rec_empty",
+        fields: {
+          candidateId: "c1",
+          candidateName: "张三",
+          interviewerName: "李四",
+          interviewerOpenId: "ou_int",
+          interviewTime: 1_700_000_000_000,
+        },
+      }),
+    } as unknown as BitableTables
+    const handler = makeBitableChangeHandler({ bitable, interviewTableId })
+    const got = vi.fn()
+    bus.on("InterviewScheduled", got)
+
+    await handler(envelope({
+      table_id: interviewTableId,
+      action_list: [{ record_id: "rec_empty" }],
+    }))
+    await new Promise((r) => setImmediate(r))
+
+    expect(got).toHaveBeenCalledWith(expect.objectContaining({ interviewerOpenId: "ou_int" }))
+  })
+
   it("emits ReviewSubmitted when reviewResult is set and status not 已完成", async () => {
     const bitable = {
       getInterview: vi.fn().mockResolvedValue({

@@ -43,8 +43,14 @@ export function dispatchInterview(recordId: string, fields: InterviewFields): vo
   const status = fields.interviewStatus
   const notificationStatus = fields.notificationStatus
 
+  // Treat empty/undefined status as "待安排" (newly created row, HR hasn't
+  // explicitly picked a status). This matches Feishu's auto-save UX where
+  // each field change fires an event but key fields (interviewer / time) are
+  // already in place.
+  const isPendingSchedule = !status || status === "待安排"
+
   if (
-    status === "待安排"
+    isPendingSchedule
     && interviewerOpenId
     && interviewTime
     && notificationStatus !== "已通知"
