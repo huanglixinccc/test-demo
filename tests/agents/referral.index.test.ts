@@ -121,11 +121,77 @@ describe("ReferralAgent", () => {
     })
     await new Promise((r) => setTimeout(r, 20))
 
-    expect(updateReferral).toHaveBeenCalledWith("rec_r", { currentStatus: "技术面" })
     expect(im.sendTextToUser).toHaveBeenCalledWith(
       "ou_referrer",
       expect.stringContaining("技术面"),
     )
+    expect(updateReferral).toHaveBeenCalledWith("rec_r", { currentStatus: "技术面" })
+    expect(im.sendTextToUser.mock.invocationCallOrder[0]).toBeLessThan(
+      updateReferral.mock.invocationCallOrder[0]!,
+    )
+  })
+
+  it("does not update Referral when notify fails", async () => {
+    const im = {
+      sendTextToUser: vi.fn().mockRejectedValue(new Error("im failed")),
+      sendCardToUser: vi.fn(),
+    } as unknown as FeishuIM
+    const updateReferral = vi.fn().mockResolvedValue(undefined)
+    const bitable = {
+      findReferralByCandidateId: vi.fn().mockResolvedValue({
+        record_id: "rec_r",
+        fields: {
+          candidateId: "c1",
+          candidateName: "张三",
+          referrerOpenId: "ou_referrer",
+          currentStatus: "待筛选",
+        },
+      }),
+      updateReferral,
+    } as unknown as BitableTables
+    registerReferralAgent({ ai: { chat: vi.fn() }, bitable, im })
+
+    bus.emit("CandidateStatusChanged", {
+      candidateRecordId: "rec_c",
+      candidateId: "c1",
+      candidateName: "张三",
+      status: "技术面",
+    })
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(updateReferral).not.toHaveBeenCalled()
+  })
+
+  it("skips notify when referrerOpenId is invalid", async () => {
+    const im = {
+      sendTextToUser: vi.fn(),
+      sendCardToUser: vi.fn(),
+    } as unknown as FeishuIM
+    const updateReferral = vi.fn()
+    const bitable = {
+      findReferralByCandidateId: vi.fn().mockResolvedValue({
+        record_id: "rec_r",
+        fields: {
+          candidateId: "c1",
+          candidateName: "张三",
+          referrerOpenId: "推荐人(ou_b5746…)",
+          currentStatus: "待筛选",
+        },
+      }),
+      updateReferral,
+    } as unknown as BitableTables
+    registerReferralAgent({ ai: { chat: vi.fn() }, bitable, im })
+
+    bus.emit("CandidateStatusChanged", {
+      candidateRecordId: "rec_c",
+      candidateId: "c1",
+      candidateName: "张三",
+      status: "技术面",
+    })
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(im.sendTextToUser).not.toHaveBeenCalled()
+    expect(updateReferral).not.toHaveBeenCalled()
   })
 
   it("skips notify when status is unchanged", async () => {

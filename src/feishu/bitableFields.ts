@@ -76,3 +76,12 @@ export function extractCandidateStatusFromAction(
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
+
+/** Parse a Feishu user open_id from Bitable text / rich-text field values. */
+export function normalizeOpenId(raw: unknown): string | undefined {
+  const v = normalizeBitableFieldValue(raw)
+  if (!v) return undefined
+  if (/^ou_[a-z0-9]{8,}$/i.test(v)) return v
+  const match = v.match(/ou_[a-z0-9]{8,}/i)
+  return match?.[0]
+}

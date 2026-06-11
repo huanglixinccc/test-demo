@@ -2,7 +2,7 @@ import { v4 as uuid } from "uuid"
 import type { AIProvider } from "../../ai/provider.js"
 import type { BitableTables } from "../../feishu/bitable.js"
 import type { FeishuIM } from "../../feishu/im.js"
-import { normalizeBitableFieldValue, sleep } from "../../feishu/bitableFields.js"
+import { normalizeBitableFieldValue, normalizeOpenId, sleep } from "../../feishu/bitableFields.js"
 import { bus } from "../../events/bus.js"
 import { parseResume, hasAnyKeyField, type ParsedResume } from "../resume/parse.js"
 import { buildReferralReplyCard, buildReferralStatusUpdateText } from "./notify.js"
@@ -130,27 +130,39 @@ export function registerReferralAgent(deps: ReferralAgentDeps): void {
       return
     }
 
-    try {
-      await deps.bitable.updateReferral(referral.record_id, { currentStatus: status })
-    } catch (err) {
-      logger.error({ err }, "referralAgent.update_referral_failed")
-      // proceed to notify anyway; worst case we double-notify on next change
+    const referrerOpenId = normalizeOpenId(referral.fields.referrerOpenId)
+    if (!referrerOpenId) {
+      logger.error(
+        {
+          candidateId: payload.candidateId,
+          rawReferrerOpenId: referral.fields.referrerOpenId,
+        },
+        "referralAgent.invalid_referrer_open_id",
+      )
+      return
     }
 
+    const text = buildReferralStatusUpdateText({ candidateName, status })
     try {
-      const text = buildReferralStatusUpdateText({ candidateName, status })
       logger.info(
         {
           candidateId: payload.candidateId,
-          referrerOpenId: referral.fields.referrerOpenId,
+          referrerOpenId,
           from: previousStatus,
           to: status,
         },
         "referralAgent.notify",
       )
-      await deps.im.sendTextToUser(referral.fields.referrerOpenId, text)
+      await deps.im.sendTextToUser(referrerOpenId, text)
     } catch (err) {
-      logger.error({ err }, "referralAgent.notify_failed")
+      logger.error({ err, referrerOpenId }, "referralAgent.notify_failed")
+      return
+    }
+
+    try {
+      await deps.bitable.updateReferral(referral.record_id, { currentStatus: status })
+    } catch (err) {
+      logger.error({ err }, "referralAgent.update_referral_failed")
     }
   })
 }

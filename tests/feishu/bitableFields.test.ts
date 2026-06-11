@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest"
 import {
   extractCandidateStatusFromAction,
   normalizeBitableFieldValue,
+  normalizeOpenId,
 } from "../../src/feishu/bitableFields.js"
 
 describe("bitableFields", () => {
@@ -29,5 +30,15 @@ describe("bitableFields", () => {
       after_value: [{ field_id: "fld_name", field_value: "王五" }],
     })
     expect(status).toBeUndefined()
+  })
+
+  it("normalizes full open_id", () => {
+    expect(normalizeOpenId("ou_b5746a453c4ebea22f6adce5d584fcbf")).toBe(
+      "ou_b5746a453c4ebea22f6adce5d584fcbf",
+    )
+  })
+
+  it("rejects truncated display label as open_id", () => {
+    expect(normalizeOpenId("推荐人(ou_b5746…)")).toBeUndefined()
   })
 })

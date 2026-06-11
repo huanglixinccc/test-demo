@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance } from "axios"
+import axios, { isAxiosError, type AxiosInstance } from "axios"
 import { logger } from "../utils/logger.js"
 
 export interface FeishuClientOptions {
@@ -50,13 +50,23 @@ export class FeishuClient {
     opts?: { data?: unknown; params?: Record<string, unknown> },
   ): Promise<T> {
     const token = await this.getTenantAccessToken()
-    const res = await this.http.request<{ code: number; msg: string; data: T }>({
-      method,
-      url: path,
-      data: opts?.data,
-      params: opts?.params,
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    let res
+    try {
+      res = await this.http.request<{ code: number; msg: string; data: T }>({
+        method,
+        url: path,
+        data: opts?.data,
+        params: opts?.params,
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.data) {
+        throw new Error(
+          `Feishu HTTP ${err.response.status}: ${JSON.stringify(err.response.data)} (path=${path})`,
+        )
+      }
+      throw err
+    }
     if (res.data.code !== 0) {
       throw new Error(`Feishu API error: ${res.data.code} ${res.data.msg} (path=${path})`)
     }
