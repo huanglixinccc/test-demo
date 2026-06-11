@@ -2,6 +2,7 @@ import type { DecryptedEnvelope } from "../../webhook/verify.js"
 import type { FeishuIM } from "../im.js"
 import { bus } from "../../events/bus.js"
 import { logger } from "../../utils/logger.js"
+import { LruDedupe } from "../../utils/dedupe.js"
 import { extractTextFromPdf } from "../../utils/pdf.js"
 
 interface ImMessageEvent {
@@ -14,12 +15,19 @@ interface ImMessageEvent {
   }
 }
 
+const messageDedupe = new LruDedupe(2000)
+
 export function makeBotMessageHandler(im: FeishuIM) {
   return async function handle(envelope: DecryptedEnvelope): Promise<void> {
     const ev = envelope.event as ImMessageEvent
     if (ev?.message?.chat_type !== "p2p") return
     const senderOpenId = ev.sender?.sender_id?.open_id
     if (!senderOpenId) return
+
+    if (messageDedupe.seen(ev.message.message_id)) {
+      logger.info({ messageId: ev.message.message_id }, "botMessage.dedupe.skip")
+      return
+    }
 
     logger.info(
       { openId: senderOpenId, type: ev.message.message_type, messageId: ev.message.message_id },

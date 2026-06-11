@@ -122,6 +122,30 @@ describe("bot message handler", () => {
     expect(resume).toHaveBeenCalled()
   })
 
+  it("ignores duplicate delivery of the same message_id", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+    const got = vi.fn()
+    bus.on("ReferralReceived", got)
+
+    const event = envelope({
+      sender: { sender_id: { open_id: "ou_ref" } },
+      message: {
+        message_id: "om_dup",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "内推 王五\n姓名:王五\n岗位:后端" }),
+      },
+    })
+
+    await handler(event)
+    await handler(event)
+    await new Promise((r) => setImmediate(r))
+
+    expect(got).toHaveBeenCalledTimes(1)
+    expect(im.sendTextToUser).toHaveBeenCalledTimes(1)
+  })
+
   it("downloads and emits for TXT file", async () => {
     const im = fakeIm()
     const handler = makeBotMessageHandler(im)
