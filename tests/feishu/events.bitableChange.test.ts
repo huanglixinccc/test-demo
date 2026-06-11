@@ -150,6 +150,41 @@ describe("bitable change handler", () => {
     )
   })
 
+  it("prefers status from webhook after_value when getCandidate is stale", async () => {
+    const bitable = {
+      getInterview: vi.fn(),
+      getCandidate: vi.fn().mockResolvedValue({
+        record_id: "rec_c",
+        fields: {
+          candidateId: "c1",
+          name: "张三",
+          status: "待筛选",
+        },
+      }),
+    } as unknown as BitableTables
+    const handler = makeBitableChangeHandler({
+      bitable,
+      interviewTableId,
+      candidateTableId: "tCand",
+    })
+    const got = vi.fn()
+    bus.on("CandidateStatusChanged", got)
+
+    await handler(envelope({
+      table_id: "tCand",
+      action_list: [{
+        record_id: "rec_c",
+        action: "record_edited",
+        after_value: [{ field_id: "fld_status", field_value: "技术面" }],
+      }],
+    }))
+    await new Promise((r) => setImmediate(r))
+
+    expect(got).toHaveBeenCalledWith(
+      expect.objectContaining({ candidateId: "c1", status: "技术面" }),
+    )
+  })
+
   it("does not emit CandidateStatusChanged when status is empty", async () => {
     const bitable = {
       getInterview: vi.fn(),

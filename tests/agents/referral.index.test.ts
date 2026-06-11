@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { registerReferralAgent } from "../../src/agents/referral/index.js"
 import { bus } from "../../src/events/bus.js"
 import type { BitableTables } from "../../src/feishu/bitable.js"
@@ -178,5 +178,52 @@ describe("ReferralAgent", () => {
     await new Promise((r) => setTimeout(r, 20))
 
     expect(im.sendTextToUser).not.toHaveBeenCalled()
+  })
+
+  it("re-fetches candidate after delay when webhook delivered stale status", async () => {
+    vi.useFakeTimers()
+    const im = {
+      sendTextToUser: vi.fn().mockResolvedValue(undefined),
+      sendCardToUser: vi.fn(),
+    } as unknown as FeishuIM
+    const findCandidateByCandidateId = vi.fn().mockResolvedValue({
+      record_id: "rec_c",
+      fields: { candidateId: "c1", name: "张三", status: "技术面" },
+    })
+    const bitable = {
+      findReferralByCandidateId: vi.fn().mockResolvedValue({
+        record_id: "rec_r",
+        fields: {
+          candidateId: "c1",
+          candidateName: "张三",
+          referrerOpenId: "ou_referrer",
+          currentStatus: "待筛选",
+        },
+      }),
+      updateReferral: vi.fn().mockResolvedValue(undefined),
+      findCandidateByCandidateId,
+    } as unknown as BitableTables
+    registerReferralAgent({ ai: { chat: vi.fn() }, bitable, im })
+
+    bus.emit("CandidateStatusChanged", {
+      candidateRecordId: "rec_c",
+      candidateId: "c1",
+      candidateName: "张三",
+      status: "待筛选",
+    })
+
+    await vi.advanceTimersByTimeAsync(900)
+    await Promise.resolve()
+
+    expect(findCandidateByCandidateId).toHaveBeenCalledWith("c1")
+    expect(im.sendTextToUser).toHaveBeenCalledWith(
+      "ou_referrer",
+      expect.stringContaining("技术面"),
+    )
+    vi.useRealTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 })

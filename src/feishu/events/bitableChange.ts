@@ -1,12 +1,18 @@
 import type { DecryptedEnvelope } from "../../webhook/verify.js"
 import type { BitableTables, CandidateFields, InterviewFields } from "../bitable.js"
+import {
+  type BitableRecordAction,
+  extractCandidateStatusFromAction,
+  normalizeBitableFieldValue,
+  sleep,
+} from "../bitableFields.js"
 import { bus } from "../../events/bus.js"
 import { logger } from "../../utils/logger.js"
 
 interface BitableChangeEvent {
   file_token?: string
   table_id: string
-  action_list?: Array<{ record_id: string }>
+  action_list?: BitableRecordAction[]
   record_id?: string
 }
 
@@ -17,8 +23,12 @@ export function makeBitableChangeHandler(opts: {
 }) {
   return async function handle(envelope: DecryptedEnvelope): Promise<void> {
     const ev = envelope.event as BitableChangeEvent
-    const recordIds = ev.action_list?.map((a) => a.record_id)
-      ?? (ev.record_id ? [ev.record_id] : [])
+    const recordIds = collectRecordIds(ev)
+
+    logger.info(
+      { tableId: ev.table_id, recordCount: recordIds.length, actions: ev.action_list?.length ?? 0 },
+      "bitableChange.received",
+    )
 
     if (ev.table_id === opts.interviewTableId) {
       for (const recordId of recordIds) {
@@ -35,36 +45,96 @@ export function makeBitableChangeHandler(opts: {
     }
 
     if (opts.candidateTableId && ev.table_id === opts.candidateTableId) {
+      const actionsByRecord = indexActionsByRecord(ev.action_list)
       for (const recordId of recordIds) {
+        const statusFromEvent = extractStatusFromActions(actionsByRecord.get(recordId))
         let record
         try {
-          record = await opts.bitable.getCandidate(recordId)
+          record = await fetchCandidateWithRetry(opts.bitable, recordId)
         } catch (err) {
           logger.error({ err, recordId }, "bitableChange.get_candidate_failed")
           continue
         }
-        dispatchCandidate(record.record_id, record.fields)
+        dispatchCandidate(record.record_id, record.fields, statusFromEvent)
       }
       return
     }
 
-    logger.debug({ tableId: ev.table_id }, "bitableChange.skip.other_table")
+    logger.debug(
+      {
+        tableId: ev.table_id,
+        interviewTableId: opts.interviewTableId,
+        candidateTableId: opts.candidateTableId,
+      },
+      "bitableChange.skip.other_table",
+    )
   }
 }
 
-export function dispatchCandidate(recordId: string, fields: CandidateFields): void {
-  const status = fields.status
-  const candidateId = fields.candidateId
-  // Status field must be populated for us to act. Skip rows still being created
-  // (HR auto-save fires events with partial fields).
+function collectRecordIds(ev: BitableChangeEvent): string[] {
+  const fromActions = ev.action_list?.map((a) => a.record_id).filter(Boolean) as string[] | undefined
+  if (fromActions?.length) return [...new Set(fromActions)]
+  return ev.record_id ? [ev.record_id] : []
+}
+
+function indexActionsByRecord(
+  actions: BitableRecordAction[] | undefined,
+): Map<string, BitableRecordAction[]> {
+  const map = new Map<string, BitableRecordAction[]>()
+  for (const action of actions ?? []) {
+    if (!action.record_id) continue
+    const list = map.get(action.record_id) ?? []
+    list.push(action)
+    map.set(action.record_id, list)
+  }
+  return map
+}
+
+function extractStatusFromActions(actions: BitableRecordAction[] | undefined): string | undefined {
+  for (const action of actions ?? []) {
+    const status = extractCandidateStatusFromAction(action)
+    if (status) return status
+  }
+  return undefined
+}
+
+async function fetchCandidateWithRetry(
+  bitable: BitableTables,
+  recordId: string,
+): Promise<Awaited<ReturnType<BitableTables["getCandidate"]>>> {
+  const delays = [0, 400, 900]
+  let lastErr: unknown
+  for (const delay of delays) {
+    if (delay > 0) await sleep(delay)
+    try {
+      return await bitable.getCandidate(recordId)
+    } catch (err) {
+      lastErr = err
+    }
+  }
+  throw lastErr
+}
+
+export function dispatchCandidate(
+  recordId: string,
+  fields: CandidateFields,
+  statusOverride?: string,
+): void {
+  const status = statusOverride ?? normalizeBitableFieldValue(fields.status)
+  const candidateId = normalizeBitableFieldValue(fields.candidateId)
+  const candidateName = normalizeBitableFieldValue(fields.name) ?? ""
+
   if (!status || !candidateId) {
-    logger.debug({ recordId }, "bitableChange.candidate.skip_partial")
+    logger.info({ recordId, status, candidateId }, "bitableChange.candidate.skip_partial")
     return
   }
+
+  logger.info({ recordId, candidateId, status, fromEvent: Boolean(statusOverride) }, "bitableChange.candidate.dispatch")
+
   bus.emit("CandidateStatusChanged", {
     candidateRecordId: recordId,
     candidateId,
-    candidateName: fields.name ?? "",
+    candidateName,
     status,
   })
 }

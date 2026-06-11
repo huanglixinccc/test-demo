@@ -42,6 +42,12 @@ export function registerInterviewAgent(deps: InterviewAgentDeps): void {
 
       if (candidate && nextStatus !== currentStatus) {
         await deps.bitable.updateCandidate(candidate.record_id, { status: nextStatus })
+        bus.emit("CandidateStatusChanged", {
+          candidateRecordId: candidate.record_id,
+          candidateId: payload.candidateId,
+          candidateName: payload.candidateName,
+          status: nextStatus,
+        })
       }
 
       const text = buildHrSummaryText({
