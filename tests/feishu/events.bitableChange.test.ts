@@ -8,7 +8,7 @@ function envelope(event: unknown) {
     schema: "2.0",
     header: {
       event_id: "ev_bc_1",
-      event_type: "drive.file.bitable_record_changed",
+      event_type: "drive.file.bitable_record_changed_v1",
       create_time: "x",
       token: "t",
       app_id: "a",

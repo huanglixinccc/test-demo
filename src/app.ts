@@ -37,7 +37,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
 
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
   dispatcher.register(
-    "drive.file.bitable_record_changed",
+    "drive.file.bitable_record_changed_v1",
     makeBitableChangeHandler({ bitable, interviewTableId: deps.tableIds.interview }),
   )
 

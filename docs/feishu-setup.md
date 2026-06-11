@@ -217,7 +217,7 @@ curl https://<你的域名>/health
 - **请求地址**：`https://<你的域名>/webhook/feishu`
 - 添加事件订阅：
   - `接收消息 v1.0`：`im.message.receive_v1`
-  - `多维表格记录变更`：`drive.file.bitable_record_changed`
+  - `多维表格记录变更`：`drive.file.bitable_record_changed_v1`
 - 点「**保存**」 → 飞书会立刻发一个 URL Challenge 给你的 URL，服务里的 `/webhook/feishu` 会自动回应 → 显示「验证通过」
 
 > 如果验证失败：
