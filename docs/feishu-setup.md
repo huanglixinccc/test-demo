@@ -41,9 +41,16 @@
 
 ### A5. 创建多维表格 + 4 张表
 
-1. 飞书云文档 → 新建多维表格（例：`招聘助手数据库`）
-2. 在多维表格里新建 4 张数据表：`Candidate` / `Referral` / `Interview` / `JobDescription`
-3. 字段（**必须与代码一致**，列名大小写也要严格一致）：
+> ⚠️ **重要：必须在「我的云空间」直接新建多维表格，不要建在「知识库 / Wiki」里。**
+>
+> Wiki 里的多维表格 URL 是 `xxx.feishu.cn/wiki/<WIKI_NODE_TOKEN>?table=...`，URL 里的 token 是 wiki 节点 token，**不是** `app_token`，直接填进 `.env` 会调用失败。
+>
+> 正确的多维表格 URL 应该是 `xxx.feishu.cn/base/<APP_TOKEN>?table=<TABLE_ID>`，token 才是真正可用的 `app_token`。
+
+1. 飞书云空间 → 「我的空间」 → 「新建」 → 「多维表格」（**不要点"知识库 → 添加文档 → 多维表格"那条路径**）
+2. 命名（例：`招聘助手数据库`）
+3. 在这个多维表格里新建 4 张数据表：`Candidate` / `Referral` / `Interview` / `JobDescription`
+4. 字段（**必须与代码一致**，列名大小写也要严格一致）：
 
 #### Candidate
 | 字段名 | 类型 |
@@ -101,14 +108,27 @@
 
 ### A7. 记录 Bitable token 与 table id
 
-打开多维表格，看浏览器 URL：
+打开多维表格，看浏览器 URL。**只接受 `/base/` 开头的格式：**
 
 ```
-https://xxx.feishu.cn/base/<APP_TOKEN>?table=<TABLE_ID>&view=...
+✅ 正确：https://xxx.feishu.cn/base/<APP_TOKEN>?table=<TABLE_ID>&view=...
+❌ 错误：https://xxx.feishu.cn/wiki/<WIKI_NODE_TOKEN>?table=<TABLE_ID>&view=...
 ```
 
 - `<APP_TOKEN>` → 对应 `.env` 里的 `FEISHU_BITABLE_APP_TOKEN`
 - 切换到不同表格 tab，URL 里 `<TABLE_ID>` 会变 → 分别记下 4 张表的 ID，对应 `FEISHU_TABLE_CANDIDATE` / `_INTERVIEW` / `_REFERRAL` / `_JD`
+
+> **如果你看到的是 `/wiki/` 开头的 URL**，说明你的多维表格建在了「知识库」里（A5 没按指引）。补救方案：
+>
+> - **最简单**：在「我的空间」重新建一个多维表格，把 4 张表重建一次（前期还没数据，代价小）
+> - **不想重建**：把多维表格节点从知识库「移动」到「我的空间」（节点右上角"..." → 移动）
+> - **完全不想动**：调一次飞书 API 把 wiki node token 翻译成 app_token：
+>   ```bash
+>   curl "https://open.feishu.cn/open-apis/wiki/v2/spaces/get_node?token=<WIKI_NODE_TOKEN>" \
+>     -H "Authorization: Bearer <tenant_access_token>"
+>   # 响应里 data.node.obj_token 就是 app_token，data.node.obj_type 应为 "bitable"
+>   ```
+>   这个方案需要额外申请 `wiki:wiki:readonly` 权限。
 
 ---
 
@@ -254,8 +274,9 @@ pm2 reload recruit-agent
 
 | 现象 | 在哪一阶段 | 排查 |
 | --- | --- | --- |
+| 多维表格 URL 是 `/wiki/` 开头不是 `/base/` | A5/A7 | 表建在知识库里了。重建到「我的空间」，或用 wiki API 翻译 token，详见 A7 |
 | 看不到 Encrypt Key/Verification Token | A4 | 必须先点「开启加密策略」/「Verification Token」开关 |
 | `/health` 返回 502/超时 | B5 | Nginx 没起 / pm2 没起 / 防火墙没开 443 |
 | 飞书后台点保存说 URL 验证失败 | C1 | 看 `pm2 logs --err` → 大概率是 `FEISHU_ENCRYPT_KEY` 没填对 |
-| 机器人收到消息但 Bitable 写不进 | E | 应用没加到多维表格协作者（A6 漏了） |
+| 机器人收到消息但 Bitable 写不进 | E | 1) 应用没加多维表格协作者（A6 漏了）；或 2) `FEISHU_BITABLE_APP_TOKEN` 实际是 wiki node token（A7 没看清） |
 | 面试官没收到面试通知 | E | Bitable Interview 行的 `interviewerOpenId` 字段没填，或 open_id 拼错 |
