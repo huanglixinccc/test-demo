@@ -1,10 +1,26 @@
+export function formatInterviewTime(ts: number, timeZone = "Asia/Shanghai"): string {
+  // Feishu stores 日期字段 as ms epoch (UTC). Format in user-facing local time
+  // explicitly; otherwise toISOString() returns UTC and confuses non-UTC users.
+  const parts = new Intl.DateTimeFormat("zh-CN", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(ts))
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ""
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`
+}
+
 export function buildInterviewNotifyCard(opts: {
   candidateName: string
   interviewerName: string
   interviewTime: number
   recordId: string
 }) {
-  const when = new Date(opts.interviewTime).toISOString().replace("T", " ").slice(0, 16)
+  const when = formatInterviewTime(opts.interviewTime)
   return {
     config: { wide_screen_mode: true },
     header: {
