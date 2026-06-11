@@ -3,6 +3,7 @@ import type { FeishuIM } from "../im.js"
 import { bus } from "../../events/bus.js"
 import { logger } from "../../utils/logger.js"
 import { LruDedupe } from "../../utils/dedupe.js"
+import { isAnalyticsIntent } from "../../agents/analytics/query.js"
 import { extractTextFromPdf } from "../../utils/pdf.js"
 
 interface ImMessageEvent {
@@ -41,6 +42,16 @@ export function makeBotMessageHandler(im: FeishuIM) {
       if (isReferralIntent(text)) {
         await im.sendTextToUser(senderOpenId, "已收到您的内推，正在解析…")
         bus.emit("ReferralReceived", {
+          text,
+          senderOpenId,
+          sourceMessageId: ev.message.message_id,
+        })
+        return
+      }
+
+      if (isAnalyticsIntent(text)) {
+        await im.sendTextToUser(senderOpenId, "正在统计招聘漏斗…")
+        bus.emit("AnalyticsQueryReceived", {
           text,
           senderOpenId,
           sourceMessageId: ev.message.message_id,

@@ -23,6 +23,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { registerResumeAgent } = await import("./agents/resume/index.js")
   const { registerInterviewAgent } = await import("./agents/interview/index.js")
   const { registerReferralAgent } = await import("./agents/referral/index.js")
+  const { registerAnalyticsAgent } = await import("./agents/analytics/index.js")
   const { startReviewReminder } = await import("./scheduler/reviewReminder.js")
 
   const app = express()
@@ -36,6 +37,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   registerResumeAgent({ ai, bitable, im })
   registerInterviewAgent({ bitable, im, hrOpenIds: deps.hrOpenIds })
   registerReferralAgent({ ai, bitable, im })
+  registerAnalyticsAgent({ ai, bitable, im })
 
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
   dispatcher.register(

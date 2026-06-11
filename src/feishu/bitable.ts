@@ -210,6 +210,26 @@ export class BitableTables {
     })
   }
 
+  async listAllCandidates(): Promise<BitableRecord<CandidateFields>[]> {
+    const items: BitableRecord<CandidateFields>[] = []
+    let pageToken: string | undefined
+    do {
+      const data = await this.client.request<{
+        items?: BitableRecord<CandidateFields>[]
+        page_token?: string
+        has_more?: boolean
+      }>("POST", `${this.base(this.tables.candidate)}/records/search`, {
+        data: {
+          page_size: 500,
+          ...(pageToken ? { page_token: pageToken } : {}),
+        },
+      })
+      items.push(...(data.items ?? []))
+      pageToken = data.has_more ? data.page_token : undefined
+    } while (pageToken)
+    return items
+  }
+
   async listInterviewsNeedingReminder(now: number): Promise<BitableRecord<InterviewFields>[]> {
     const data = await this.client.request<{ items?: BitableRecord<InterviewFields>[] }>(
       "POST",

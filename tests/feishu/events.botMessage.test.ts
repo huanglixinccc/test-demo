@@ -146,6 +146,32 @@ describe("bot message handler", () => {
     expect(im.sendTextToUser).toHaveBeenCalledTimes(1)
   })
 
+  it("routes analytics intent to AnalyticsQueryReceived", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+    const analytics = vi.fn()
+    const resume = vi.fn()
+    bus.on("AnalyticsQueryReceived", analytics)
+    bus.on("ResumeReceived", resume)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_hr" } },
+      message: {
+        message_id: "om_analytics",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "本月前端岗位漏斗情况" }),
+      },
+    }))
+
+    await new Promise((r) => setImmediate(r))
+    expect(analytics).toHaveBeenCalledWith(
+      expect.objectContaining({ senderOpenId: "ou_hr", text: "本月前端岗位漏斗情况" }),
+    )
+    expect(resume).not.toHaveBeenCalled()
+    expect(im.sendTextToUser).toHaveBeenCalledWith("ou_hr", "正在统计招聘漏斗…")
+  })
+
   it("downloads and emits for TXT file", async () => {
     const im = fakeIm()
     const handler = makeBotMessageHandler(im)

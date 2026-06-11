@@ -124,6 +124,30 @@ describe("BitableTables", () => {
     expect(calls[0].p).toBe("/open-apis/bitable/v1/apps/appT/tables/tCand/records/rec_c")
   })
 
+  it("listAllCandidates paginates search results", async () => {
+    const calls: any[] = []
+    const client = fakeClient(async (m, p, opts) => {
+      calls.push({ m, p, opts })
+      if (calls.length === 1) {
+        return {
+          items: [{ record_id: "c1", fields: { candidateId: "c1" } }],
+          has_more: true,
+          page_token: "tok2",
+        }
+      }
+      return {
+        items: [{ record_id: "c2", fields: { candidateId: "c2" } }],
+        has_more: false,
+      }
+    })
+    const t = new BitableTables(client, "appT", tables)
+    const out = await t.listAllCandidates()
+    expect(out.map((r) => r.record_id)).toEqual(["c1", "c2"])
+    expect(calls).toHaveLength(2)
+    expect(calls[0].opts.data.page_size).toBe(500)
+    expect(calls[1].opts.data.page_token).toBe("tok2")
+  })
+
   it("listInterviewsNeedingReminder filters in-memory", async () => {
     const now = 1_000_000_000_000
     const oldEnough = now - 2 * 60 * 60 * 1000

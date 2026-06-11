@@ -36,10 +36,17 @@ export interface CandidateStatusChangedPayload {
   status: string
 }
 
+export interface AnalyticsQueryReceivedPayload {
+  text: string
+  senderOpenId: string
+  sourceMessageId: string
+}
+
 export type EventMap = {
   ResumeReceived: ResumeReceivedPayload
   InterviewScheduled: InterviewScheduledPayload
   ReviewSubmitted: ReviewSubmittedPayload
   ReferralReceived: ReferralReceivedPayload
   CandidateStatusChanged: CandidateStatusChangedPayload
+  AnalyticsQueryReceived: AnalyticsQueryReceivedPayload
 }
