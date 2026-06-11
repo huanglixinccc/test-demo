@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 import {
   extractCandidateStatusFromAction,
+  extractReviewResultFromAction,
   normalizeBitableFieldValue,
   normalizeOpenId,
 } from "../../src/feishu/bitableFields.js"
@@ -40,5 +41,14 @@ describe("bitableFields", () => {
 
   it("rejects truncated display label as open_id", () => {
     expect(normalizeOpenId("推荐人(ou_b5746…)")).toBeUndefined()
+  })
+
+  it("extracts reviewResult from record_edited after_value", () => {
+    const result = extractReviewResultFromAction({
+      action: "record_edited",
+      record_id: "rec1",
+      after_value: [{ field_id: "fld_review", field_value: "通过" }],
+    })
+    expect(result).toBe("通过")
   })
 })

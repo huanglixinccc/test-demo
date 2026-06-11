@@ -70,6 +70,35 @@ describe("BitableTables", () => {
     expect(calls[0].opts.data.fields.referrerOpenId).toBe("ou_x")
   })
 
+  it("createInterview POSTs to interview table /records", async () => {
+    const calls: any[] = []
+    const client = fakeClient(async (m, p, opts) => {
+      calls.push({ m, p, opts })
+      return { record: { record_id: "rec_iv", fields: opts.data.fields } }
+    })
+    const t = new BitableTables(client, "appT", tables)
+    const out = await t.createInterview({
+      candidateId: "c1",
+      candidateName: "张三",
+      interviewStatus: "待安排",
+      notificationStatus: "未通知",
+    })
+    expect(out.record_id).toBe("rec_iv")
+    expect(calls[0].p).toBe("/open-apis/bitable/v1/apps/appT/tables/tIv/records")
+  })
+
+  it("findOpenInterviewByCandidateId returns non-completed interview", async () => {
+    const client = fakeClient(async () => ({
+      items: [
+        { record_id: "done", fields: { candidateId: "c1", interviewStatus: "已完成" } },
+        { record_id: "open", fields: { candidateId: "c1", interviewStatus: "待安排" } },
+      ],
+    }))
+    const t = new BitableTables(client, "appT", tables)
+    const out = await t.findOpenInterviewByCandidateId("c1")
+    expect(out?.record_id).toBe("open")
+  })
+
   it("findReferralByCandidateId searches by candidateId", async () => {
     const calls: any[] = []
     const client = fakeClient(async (m, p, opts) => {

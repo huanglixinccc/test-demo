@@ -103,6 +103,34 @@ describe("bitable change handler", () => {
     expect(got).toHaveBeenCalledWith(expect.objectContaining({ reviewResult: "通过" }))
   })
 
+  it("prefers reviewResult from webhook after_value when getInterview is stale", async () => {
+    const bitable = {
+      getInterview: vi.fn().mockResolvedValue({
+        record_id: "rec2",
+        fields: {
+          candidateId: "c1",
+          candidateName: "张三",
+          interviewStatus: "待面评",
+        },
+      }),
+    } as unknown as BitableTables
+    const handler = makeBitableChangeHandler({ bitable, interviewTableId })
+    const got = vi.fn()
+    bus.on("ReviewSubmitted", got)
+
+    await handler(envelope({
+      table_id: interviewTableId,
+      action_list: [{
+        record_id: "rec2",
+        action: "record_edited",
+        after_value: [{ field_id: "fld_review", field_value: "通过" }],
+      }],
+    }))
+    await new Promise((r) => setImmediate(r))
+
+    expect(got).toHaveBeenCalledWith(expect.objectContaining({ reviewResult: "通过" }))
+  })
+
   it("ignores events for other tables", async () => {
     const bitable = { getInterview: vi.fn() } as unknown as BitableTables
     const handler = makeBitableChangeHandler({ bitable, interviewTableId })

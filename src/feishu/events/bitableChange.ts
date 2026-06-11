@@ -1,9 +1,11 @@
 import type { DecryptedEnvelope } from "../../webhook/verify.js"
-import type { BitableTables, CandidateFields, InterviewFields } from "../bitable.js"
+import type { BitableTables, CandidateFields, InterviewFields, ReviewResult } from "../bitable.js"
 import {
   type BitableRecordAction,
   extractCandidateStatusFromAction,
+  extractReviewResultFromAction,
   normalizeBitableFieldValue,
+  normalizeReviewResult,
   sleep,
 } from "../bitableFields.js"
 import { bus } from "../../events/bus.js"
@@ -31,15 +33,17 @@ export function makeBitableChangeHandler(opts: {
     )
 
     if (ev.table_id === opts.interviewTableId) {
+      const actionsByRecord = indexActionsByRecord(ev.action_list)
       for (const recordId of recordIds) {
+        const reviewFromEvent = extractReviewFromActions(actionsByRecord.get(recordId))
         let record
         try {
-          record = await opts.bitable.getInterview(recordId)
+          record = await fetchInterviewWithRetry(opts.bitable, recordId)
         } catch (err) {
           logger.error({ err, recordId }, "bitableChange.get_interview_failed")
           continue
         }
-        dispatchInterview(record.record_id, record.fields)
+        dispatchInterview(record.record_id, record.fields, reviewFromEvent)
       }
       return
     }
@@ -98,6 +102,33 @@ function extractStatusFromActions(actions: BitableRecordAction[] | undefined): s
   return undefined
 }
 
+function extractReviewFromActions(
+  actions: BitableRecordAction[] | undefined,
+): ReviewResult | undefined {
+  for (const action of actions ?? []) {
+    const review = extractReviewResultFromAction(action)
+    if (review) return review
+  }
+  return undefined
+}
+
+async function fetchInterviewWithRetry(
+  bitable: BitableTables,
+  recordId: string,
+): Promise<Awaited<ReturnType<BitableTables["getInterview"]>>> {
+  const delays = [0, 400, 900]
+  let lastErr: unknown
+  for (const delay of delays) {
+    if (delay > 0) await sleep(delay)
+    try {
+      return await bitable.getInterview(recordId)
+    } catch (err) {
+      lastErr = err
+    }
+  }
+  throw lastErr
+}
+
 async function fetchCandidateWithRetry(
   bitable: BitableTables,
   recordId: string,
@@ -139,11 +170,20 @@ export function dispatchCandidate(
   })
 }
 
-export function dispatchInterview(recordId: string, fields: InterviewFields): void {
-  const interviewerOpenId = fields.interviewerOpenId
+export function dispatchInterview(
+  recordId: string,
+  fields: InterviewFields,
+  reviewResultOverride?: ReviewResult,
+): void {
+  const interviewerOpenId = normalizeBitableFieldValue(fields.interviewerOpenId)
   const interviewTime = fields.interviewTime
-  const status = fields.interviewStatus
-  const notificationStatus = fields.notificationStatus
+  const status = normalizeBitableFieldValue(fields.interviewStatus)
+  const notificationStatus = normalizeBitableFieldValue(fields.notificationStatus)
+  const reviewResult = reviewResultOverride ?? normalizeReviewResult(fields.reviewResult)
+  const candidateId = normalizeBitableFieldValue(fields.candidateId) ?? ""
+  const candidateName = normalizeBitableFieldValue(fields.candidateName) ?? ""
+  const interviewerName = normalizeBitableFieldValue(fields.interviewerName) ?? ""
+  const reviewContent = normalizeBitableFieldValue(fields.reviewContent) ?? ""
 
   // Treat empty/undefined status as "待安排" (newly created row, HR hasn't
   // explicitly picked a status). This matches Feishu's auto-save UX where
@@ -160,26 +200,30 @@ export function dispatchInterview(recordId: string, fields: InterviewFields): vo
   ) {
     bus.emit("InterviewScheduled", {
       interviewRecordId: recordId,
-      candidateId: fields.candidateId ?? "",
-      candidateName: fields.candidateName ?? "",
-      interviewerName: fields.interviewerName ?? "",
+      candidateId,
+      candidateName,
+      interviewerName,
       interviewerOpenId,
       interviewTime,
     })
     return
   }
 
-  if (fields.reviewResult && status !== "已完成") {
+  if (reviewResult && status !== "已完成") {
+    logger.info(
+      { recordId, candidateId, reviewResult, fromEvent: Boolean(reviewResultOverride) },
+      "bitableChange.review.dispatch",
+    )
     bus.emit("ReviewSubmitted", {
       interviewRecordId: recordId,
-      candidateId: fields.candidateId ?? "",
-      candidateName: fields.candidateName ?? "",
-      interviewerName: fields.interviewerName ?? "",
-      reviewContent: fields.reviewContent ?? "",
-      reviewResult: fields.reviewResult,
+      candidateId,
+      candidateName,
+      interviewerName,
+      reviewContent,
+      reviewResult,
     })
     return
   }
 
-  logger.debug({ recordId, status }, "bitableChange.no_dispatch")
+  logger.debug({ recordId, status, reviewResult }, "bitableChange.no_dispatch")
 }

@@ -84,4 +84,25 @@ describe("InterviewAgent", () => {
     expect(d.updateCandidate).not.toHaveBeenCalled()
     expect(d.updateInterview).toHaveBeenCalledWith("rec1", { interviewStatus: "已完成" })
   })
+
+  it("creates Interview shell when candidate enters 技术面", async () => {
+    const createInterview = vi.fn().mockResolvedValue({ record_id: "rec_iv", fields: {} })
+    const d = deps()
+    const bitable = {
+      ...d.bitable,
+      findOpenInterviewByCandidateId: vi.fn().mockResolvedValue(undefined),
+      createInterview,
+    } as unknown as BitableTables
+    registerInterviewAgent({ bitable, im: d.im, hrOpenIds: ["ou_hr"] })
+
+    bus.emit("CandidateStatusChanged", {
+      candidateRecordId: "recCand",
+      candidateId: "c1",
+      candidateName: "张三",
+      status: "技术面",
+    })
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(createInterview).toHaveBeenCalled()
+  })
 })

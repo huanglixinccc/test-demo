@@ -96,6 +96,49 @@ export class BitableTables {
     })
   }
 
+  async createInterview(
+    fields: Pick<InterviewFields, "candidateId" | "candidateName"> &
+      Partial<InterviewFields>,
+  ): Promise<BitableRecord<InterviewFields>> {
+    const data = await this.client.request<{ record: BitableRecord<InterviewFields> }>(
+      "POST",
+      `${this.base(this.tables.interview)}/records`,
+      { data: { fields } },
+    )
+    return data.record
+  }
+
+  async findInterviewsByCandidateId(
+    candidateId: string,
+  ): Promise<BitableRecord<InterviewFields>[]> {
+    const data = await this.client.request<{ items?: BitableRecord<InterviewFields>[] }>(
+      "POST",
+      `${this.base(this.tables.interview)}/records/search`,
+      {
+        data: {
+          filter: {
+            conjunction: "and",
+            conditions: [
+              { field_name: "candidateId", operator: "is", value: [candidateId] },
+            ],
+          },
+          page_size: 100,
+        },
+      },
+    )
+    return data.items ?? []
+  }
+
+  async findOpenInterviewByCandidateId(
+    candidateId: string,
+  ): Promise<BitableRecord<InterviewFields> | undefined> {
+    const items = await this.findInterviewsByCandidateId(candidateId)
+    return items.find((r) => {
+      const status = r.fields.interviewStatus
+      return !status || status !== "已完成"
+    })
+  }
+
   async findCandidateByCandidateId(
     candidateId: string,
   ): Promise<BitableRecord<CandidateFields> | undefined> {

@@ -1,4 +1,4 @@
-import type { CandidateStatus } from "./bitable.js"
+import type { CandidateStatus, ReviewResult } from "./bitable.js"
 
 export const CANDIDATE_STATUS_VALUES: readonly CandidateStatus[] = [
   "待筛选",
@@ -11,6 +11,12 @@ export const CANDIDATE_STATUS_VALUES: readonly CandidateStatus[] = [
 ]
 
 const CANDIDATE_STATUS_SET = new Set<string>(CANDIDATE_STATUS_VALUES)
+
+export const REVIEW_RESULT_VALUES: readonly ReviewResult[] = ["通过", "待定", "淘汰"]
+const REVIEW_RESULT_SET = new Set<string>(REVIEW_RESULT_VALUES)
+
+/** Candidate statuses that need an Interview row for HR to schedule. */
+export const INTERVIEW_STAGE_STATUSES: readonly CandidateStatus[] = ["技术面", "HR面"]
 
 /** Normalize a Bitable field value from GET record API or webhook after_value. */
 export function normalizeBitableFieldValue(raw: unknown): string | undefined {
@@ -49,6 +55,15 @@ export function isCandidateStatus(value: string | undefined): value is Candidate
   return Boolean(value && CANDIDATE_STATUS_SET.has(value))
 }
 
+export function isReviewResult(value: string | undefined): value is ReviewResult {
+  return Boolean(value && REVIEW_RESULT_SET.has(value))
+}
+
+export function normalizeReviewResult(raw: unknown): ReviewResult | undefined {
+  const value = normalizeBitableFieldValue(raw)
+  return isReviewResult(value) ? value : undefined
+}
+
 export interface BitableRecordActionField {
   field_id?: string
   field_value?: unknown
@@ -69,6 +84,18 @@ export function extractCandidateStatusFromAction(
   for (const field of action.after_value ?? []) {
     const value = normalizeBitableFieldValue(field.field_value)
     if (isCandidateStatus(value)) return value
+  }
+  return undefined
+}
+
+/** Pull reviewResult from webhook action_list when interviewer submits review. */
+export function extractReviewResultFromAction(
+  action: BitableRecordAction,
+): ReviewResult | undefined {
+  if (action.action !== "record_edited") return undefined
+  for (const field of action.after_value ?? []) {
+    const value = normalizeReviewResult(field.field_value)
+    if (value) return value
   }
   return undefined
 }
