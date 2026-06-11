@@ -50,6 +50,51 @@ describe("BitableTables", () => {
     })
   })
 
+  it("createReferral POSTs to referral table /records", async () => {
+    const calls: any[] = []
+    const client = fakeClient(async (m, p, opts) => {
+      calls.push({ m, p, opts })
+      return { record: { record_id: "rec_r", fields: opts.data.fields } }
+    })
+    const t = new BitableTables(client, "appT", tables)
+    const out = await t.createReferral({
+      candidateId: "c1",
+      candidateName: "张三",
+      referrerName: "推荐人",
+      referrerOpenId: "ou_x",
+      referralTime: 1,
+      currentStatus: "待筛选",
+    })
+    expect(out.record_id).toBe("rec_r")
+    expect(calls[0].p).toBe("/open-apis/bitable/v1/apps/appT/tables/tRef/records")
+    expect(calls[0].opts.data.fields.referrerOpenId).toBe("ou_x")
+  })
+
+  it("findReferralByCandidateId searches by candidateId", async () => {
+    const calls: any[] = []
+    const client = fakeClient(async (m, p, opts) => {
+      calls.push({ m, p, opts })
+      return { items: [{ record_id: "rec_r", fields: { candidateId: "c1" } }] }
+    })
+    const t = new BitableTables(client, "appT", tables)
+    const out = await t.findReferralByCandidateId("c1")
+    expect(out?.record_id).toBe("rec_r")
+    expect(calls[0].p).toContain("/tRef/records/search")
+  })
+
+  it("getCandidate GETs candidate row", async () => {
+    const calls: any[] = []
+    const client = fakeClient(async (m, p) => {
+      calls.push({ m, p })
+      return { record: { record_id: "rec_c", fields: { candidateId: "c1", name: "张三", status: "技术面" } } }
+    })
+    const t = new BitableTables(client, "appT", tables)
+    const out = await t.getCandidate("rec_c")
+    expect(out.fields.name).toBe("张三")
+    expect(calls[0].m).toBe("GET")
+    expect(calls[0].p).toBe("/open-apis/bitable/v1/apps/appT/tables/tCand/records/rec_c")
+  })
+
   it("listInterviewsNeedingReminder filters in-memory", async () => {
     const now = 1_000_000_000_000
     const oldEnough = now - 2 * 60 * 60 * 1000

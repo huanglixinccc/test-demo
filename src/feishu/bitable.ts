@@ -41,6 +41,15 @@ export interface InterviewFields {
   notificationStatus?: "未通知" | "已通知" | "已提醒面评"
 }
 
+export interface ReferralFields {
+  candidateId: string
+  candidateName: string
+  referrerName: string
+  referrerOpenId: string
+  referralTime: number
+  currentStatus: string
+}
+
 export interface BitableRecord<F> {
   record_id: string
   fields: F
@@ -108,8 +117,52 @@ export class BitableTables {
     return data.items?.[0]
   }
 
+  async getCandidate(recordId: string): Promise<BitableRecord<CandidateFields>> {
+    const data = await this.client.request<{ record: BitableRecord<CandidateFields> }>(
+      "GET",
+      `${this.base(this.tables.candidate)}/records/${recordId}`,
+    )
+    return data.record
+  }
+
   async updateCandidate(recordId: string, fields: Partial<CandidateFields>): Promise<void> {
     await this.client.request("PUT", `${this.base(this.tables.candidate)}/records/${recordId}`, {
+      data: { fields },
+    })
+  }
+
+  async createReferral(fields: ReferralFields): Promise<BitableRecord<ReferralFields>> {
+    const data = await this.client.request<{ record: BitableRecord<ReferralFields> }>(
+      "POST",
+      `${this.base(this.tables.referral)}/records`,
+      { data: { fields } },
+    )
+    return data.record
+  }
+
+  async findReferralByCandidateId(
+    candidateId: string,
+  ): Promise<BitableRecord<ReferralFields> | undefined> {
+    const data = await this.client.request<{ items?: BitableRecord<ReferralFields>[] }>(
+      "POST",
+      `${this.base(this.tables.referral)}/records/search`,
+      {
+        data: {
+          filter: {
+            conjunction: "and",
+            conditions: [
+              { field_name: "candidateId", operator: "is", value: [candidateId] },
+            ],
+          },
+          page_size: 1,
+        },
+      },
+    )
+    return data.items?.[0]
+  }
+
+  async updateReferral(recordId: string, fields: Partial<ReferralFields>): Promise<void> {
+    await this.client.request("PUT", `${this.base(this.tables.referral)}/records/${recordId}`, {
       data: { fields },
     })
   }

@@ -29,6 +29,17 @@ export function makeBotMessageHandler(im: FeishuIM) {
     if (ev.message.message_type === "text") {
       const text = safeParseText(ev.message.content)
       if (!text) return
+
+      if (isReferralIntent(text)) {
+        await im.sendTextToUser(senderOpenId, "已收到您的内推，正在解析…")
+        bus.emit("ReferralReceived", {
+          text,
+          senderOpenId,
+          sourceMessageId: ev.message.message_id,
+        })
+        return
+      }
+
       await im.sendTextToUser(senderOpenId, "已收到，正在解析…")
       bus.emit("ResumeReceived", {
         text,
@@ -70,6 +81,15 @@ export function makeBotMessageHandler(im: FeishuIM) {
 
     logger.info({ type: ev.message.message_type }, "botMessage.unsupported_type")
   }
+}
+
+// First non-empty line of the message body is the "intent line". If it contains
+// 内推/推荐 (and is short enough to be a header, not a paragraph), treat the
+// whole message as a referral submission.
+export function isReferralIntent(text: string): boolean {
+  const firstLine = text.split(/\r?\n/).map((l) => l.trim()).find((l) => l.length > 0) ?? ""
+  if (firstLine.length === 0 || firstLine.length > 30) return false
+  return /内推|推荐/.test(firstLine)
 }
 
 function safeParseText(content: string): string | undefined {

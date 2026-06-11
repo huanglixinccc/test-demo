@@ -22,6 +22,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { makeBitableChangeHandler } = await import("./feishu/events/bitableChange.js")
   const { registerResumeAgent } = await import("./agents/resume/index.js")
   const { registerInterviewAgent } = await import("./agents/interview/index.js")
+  const { registerReferralAgent } = await import("./agents/referral/index.js")
   const { startReviewReminder } = await import("./scheduler/reviewReminder.js")
 
   const app = express()
@@ -34,11 +35,16 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
 
   registerResumeAgent({ ai, bitable, im })
   registerInterviewAgent({ bitable, im, hrOpenIds: deps.hrOpenIds })
+  registerReferralAgent({ ai, bitable, im })
 
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
   dispatcher.register(
     "drive.file.bitable_record_changed_v1",
-    makeBitableChangeHandler({ bitable, interviewTableId: deps.tableIds.interview }),
+    makeBitableChangeHandler({
+      bitable,
+      interviewTableId: deps.tableIds.interview,
+      candidateTableId: deps.tableIds.candidate,
+    }),
   )
 
   app.get("/health", (_req, res) => {

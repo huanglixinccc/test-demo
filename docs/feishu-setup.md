@@ -61,7 +61,7 @@
 | phone | 文本 |
 | email | 文本 |
 | skills | 多选 |
-| resumeSource | 单选（飞书机器人 / 手动 / 邮件） |
+| resumeSource | 单选（飞书机器人 / 内推 / 手动 / 邮件） |
 | resumeUrl | 文本 |
 | status | 单选（待筛选 / 初筛通过 / 技术面 / HR面 / Offer / 入职 / 淘汰） |
 | matchScore | 数字 |

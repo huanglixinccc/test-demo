@@ -70,6 +70,58 @@ describe("bot message handler", () => {
     expect(got).not.toHaveBeenCalled()
   })
 
+  it("routes 内推-prefixed text to ReferralReceived", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+    const referral = vi.fn()
+    const resume = vi.fn()
+    bus.on("ReferralReceived", referral)
+    bus.on("ResumeReceived", resume)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_ref" } },
+      message: {
+        message_id: "om_ref",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "内推 张三\n姓名:张三\n岗位:前端\n电话:138" }),
+      },
+    }))
+
+    await new Promise((r) => setImmediate(r))
+    expect(referral).toHaveBeenCalledWith(
+      expect.objectContaining({ senderOpenId: "ou_ref" }),
+    )
+    expect(resume).not.toHaveBeenCalled()
+    expect(im.sendTextToUser).toHaveBeenCalledWith("ou_ref", "已收到您的内推，正在解析…")
+  })
+
+  it("does not route a long paragraph that merely mentions 内推 to ReferralReceived", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+    const referral = vi.fn()
+    const resume = vi.fn()
+    bus.on("ReferralReceived", referral)
+    bus.on("ResumeReceived", resume)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_x" } },
+      message: {
+        message_id: "om_x",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({
+          text:
+            "我有一份简历想分享给你看看，内推机会很重要，但目前还在评估中，看你怎么决定。",
+        }),
+      },
+    }))
+
+    await new Promise((r) => setImmediate(r))
+    expect(referral).not.toHaveBeenCalled()
+    expect(resume).toHaveBeenCalled()
+  })
+
   it("downloads and emits for TXT file", async () => {
     const im = fakeIm()
     const handler = makeBotMessageHandler(im)

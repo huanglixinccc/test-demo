@@ -1,5 +1,5 @@
 import type { DecryptedEnvelope } from "../../webhook/verify.js"
-import type { BitableTables, InterviewFields } from "../bitable.js"
+import type { BitableTables, CandidateFields, InterviewFields } from "../bitable.js"
 import { bus } from "../../events/bus.js"
 import { logger } from "../../utils/logger.js"
 
@@ -13,28 +13,60 @@ interface BitableChangeEvent {
 export function makeBitableChangeHandler(opts: {
   bitable: BitableTables
   interviewTableId: string
+  candidateTableId?: string
 }) {
   return async function handle(envelope: DecryptedEnvelope): Promise<void> {
     const ev = envelope.event as BitableChangeEvent
-    if (ev.table_id !== opts.interviewTableId) {
-      logger.debug({ tableId: ev.table_id }, "bitableChange.skip.other_table")
-      return
-    }
-
     const recordIds = ev.action_list?.map((a) => a.record_id)
       ?? (ev.record_id ? [ev.record_id] : [])
 
-    for (const recordId of recordIds) {
-      let record
-      try {
-        record = await opts.bitable.getInterview(recordId)
-      } catch (err) {
-        logger.error({ err, recordId }, "bitableChange.get_failed")
-        continue
+    if (ev.table_id === opts.interviewTableId) {
+      for (const recordId of recordIds) {
+        let record
+        try {
+          record = await opts.bitable.getInterview(recordId)
+        } catch (err) {
+          logger.error({ err, recordId }, "bitableChange.get_interview_failed")
+          continue
+        }
+        dispatchInterview(record.record_id, record.fields)
       }
-      dispatchInterview(record.record_id, record.fields)
+      return
     }
+
+    if (opts.candidateTableId && ev.table_id === opts.candidateTableId) {
+      for (const recordId of recordIds) {
+        let record
+        try {
+          record = await opts.bitable.getCandidate(recordId)
+        } catch (err) {
+          logger.error({ err, recordId }, "bitableChange.get_candidate_failed")
+          continue
+        }
+        dispatchCandidate(record.record_id, record.fields)
+      }
+      return
+    }
+
+    logger.debug({ tableId: ev.table_id }, "bitableChange.skip.other_table")
   }
+}
+
+export function dispatchCandidate(recordId: string, fields: CandidateFields): void {
+  const status = fields.status
+  const candidateId = fields.candidateId
+  // Status field must be populated for us to act. Skip rows still being created
+  // (HR auto-save fires events with partial fields).
+  if (!status || !candidateId) {
+    logger.debug({ recordId }, "bitableChange.candidate.skip_partial")
+    return
+  }
+  bus.emit("CandidateStatusChanged", {
+    candidateRecordId: recordId,
+    candidateId,
+    candidateName: fields.name ?? "",
+    status,
+  })
 }
 
 export function dispatchInterview(recordId: string, fields: InterviewFields): void {
