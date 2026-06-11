@@ -1,5 +1,4 @@
 import express from "express"
-import { logger } from "./utils/logger.js"
 
 export interface AppDeps {
   encryptKey: string
@@ -73,22 +72,4 @@ export function createApp() {
   app.use(express.json({ limit: "2mb" }))
   app.get("/health", (_req, res) => res.json({ ok: true, ts: Date.now() }))
   return app
-}
-
-const isMain = import.meta.url === `file://${process.argv[1]}`
-if (isMain) {
-  const { env } = await import("./config/env.js")
-  const app = await createWiredApp({
-    encryptKey: env.feishu.encryptKey,
-    verificationToken: env.feishu.verificationToken,
-    feishuAppId: env.feishu.appId,
-    feishuAppSecret: env.feishu.appSecret,
-    bitableAppToken: env.feishu.bitableAppToken,
-    tableIds: env.tables,
-    hrOpenIds: env.hrOpenIds,
-    deepseek: env.deepseek,
-  })
-  app.listen(env.port, () => {
-    logger.info({ port: env.port }, "recruit-agent listening")
-  })
 }
