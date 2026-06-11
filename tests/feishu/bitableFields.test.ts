@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest"
 import {
   extractCandidateStatusFromAction,
   extractReviewResultFromAction,
+  isInterviewPendingSchedule,
   normalizeBitableFieldValue,
   normalizeOpenId,
 } from "../../src/feishu/bitableFields.js"
@@ -41,6 +42,13 @@ describe("bitableFields", () => {
 
   it("rejects truncated display label as open_id", () => {
     expect(normalizeOpenId("推荐人(ou_b5746…)")).toBeUndefined()
+  })
+
+  it("treats 未通知 as pending schedule status", () => {
+    expect(isInterviewPendingSchedule(undefined)).toBe(true)
+    expect(isInterviewPendingSchedule("待安排")).toBe(true)
+    expect(isInterviewPendingSchedule("未通知")).toBe(true)
+    expect(isInterviewPendingSchedule("待面试")).toBe(false)
   })
 
   it("extracts reviewResult from record_edited after_value", () => {

@@ -4,6 +4,8 @@ import {
   type BitableRecordAction,
   extractCandidateStatusFromAction,
   extractReviewResultFromAction,
+  isInterviewAlreadyNotified,
+  isInterviewPendingSchedule,
   normalizeBitableFieldValue,
   normalizeReviewResult,
   sleep,
@@ -51,7 +53,16 @@ export function makeBitableChangeHandler(opts: {
     if (opts.candidateTableId && ev.table_id === opts.candidateTableId) {
       const actionsByRecord = indexActionsByRecord(ev.action_list)
       for (const recordId of recordIds) {
-        const statusFromEvent = extractStatusFromActions(actionsByRecord.get(recordId))
+        const actions = actionsByRecord.get(recordId)
+        const statusFromEvent = extractStatusFromActions(actions)
+        const isNewRecord = actions?.some((a) => a.action === "record_added") ?? false
+        // Only react when status actually changed (or row created). Feishu fires
+        // webhooks on every field edit; without this we re-run shell creation and
+        // referral checks on unrelated candidate edits.
+        if (!statusFromEvent && !isNewRecord) {
+          logger.debug({ recordId }, "bitableChange.candidate.skip_no_status_change")
+          continue
+        }
         let record
         try {
           record = await fetchCandidateWithRetry(opts.bitable, recordId)
@@ -185,19 +196,17 @@ export function dispatchInterview(
   const interviewerName = normalizeBitableFieldValue(fields.interviewerName) ?? ""
   const reviewContent = normalizeBitableFieldValue(fields.reviewContent) ?? ""
 
-  // Treat empty/undefined status as "待安排" (newly created row, HR hasn't
-  // explicitly picked a status). This matches Feishu's auto-save UX where
-  // each field change fires an event but key fields (interviewer / time) are
-  // already in place.
-  const isPendingSchedule = !status || status === "待安排"
-
-  if (
-    isPendingSchedule
+  const canSchedule =
+    isInterviewPendingSchedule(status)
     && interviewerOpenId
     && interviewTime
-    && notificationStatus !== "已通知"
-    && notificationStatus !== "已提醒面评"
-  ) {
+    && !isInterviewAlreadyNotified(notificationStatus)
+
+  if (canSchedule) {
+    logger.info(
+      { recordId, candidateId, interviewStatus: status, notificationStatus },
+      "bitableChange.interview.schedule_dispatch",
+    )
     bus.emit("InterviewScheduled", {
       interviewRecordId: recordId,
       candidateId,

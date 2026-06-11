@@ -165,7 +165,11 @@ describe("bitable change handler", () => {
 
     await handler(envelope({
       table_id: "tCand",
-      action_list: [{ record_id: "rec_c" }],
+      action_list: [{
+        record_id: "rec_c",
+        action: "record_edited",
+        after_value: [{ field_id: "fld_status", field_value: "技术面" }],
+      }],
     }))
     await new Promise((r) => setImmediate(r))
 
@@ -236,6 +240,63 @@ describe("bitable change handler", () => {
     await new Promise((r) => setImmediate(r))
 
     expect(got).not.toHaveBeenCalled()
+  })
+
+  it("does not emit CandidateStatusChanged when status field was not edited", async () => {
+    const bitable = {
+      getInterview: vi.fn(),
+      getCandidate: vi.fn().mockResolvedValue({
+        record_id: "rec_c3",
+        fields: { candidateId: "c1", name: "张三", status: "技术面" },
+      }),
+    } as unknown as BitableTables
+    const handler = makeBitableChangeHandler({
+      bitable,
+      interviewTableId,
+      candidateTableId: "tCand",
+    })
+    const got = vi.fn()
+    bus.on("CandidateStatusChanged", got)
+
+    await handler(envelope({
+      table_id: "tCand",
+      action_list: [{
+        record_id: "rec_c3",
+        action: "record_edited",
+        after_value: [{ field_id: "fld_name", field_value: "张三三" }],
+      }],
+    }))
+    await new Promise((r) => setImmediate(r))
+
+    expect(got).not.toHaveBeenCalled()
+    expect(bitable.getCandidate).not.toHaveBeenCalled()
+  })
+
+  it("emits InterviewScheduled when interviewStatus is 未通知 (mis-filed column)", async () => {
+    const bitable = {
+      getInterview: vi.fn().mockResolvedValue({
+        record_id: "rec_mis",
+        fields: {
+          candidateId: "c1",
+          candidateName: "张三",
+          interviewerOpenId: "ou_int",
+          interviewTime: 1_700_000_000_000,
+          interviewStatus: "未通知",
+          notificationStatus: "未通知",
+        },
+      }),
+    } as unknown as BitableTables
+    const handler = makeBitableChangeHandler({ bitable, interviewTableId })
+    const got = vi.fn()
+    bus.on("InterviewScheduled", got)
+
+    await handler(envelope({
+      table_id: interviewTableId,
+      action_list: [{ record_id: "rec_mis" }],
+    }))
+    await new Promise((r) => setImmediate(r))
+
+    expect(got).toHaveBeenCalledWith(expect.objectContaining({ interviewerOpenId: "ou_int" }))
   })
 
   it("does not re-emit InterviewScheduled if already 已通知", async () => {

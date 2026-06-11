@@ -20,9 +20,31 @@ describe("ensureInterviewShell", () => {
     expect(createInterview).toHaveBeenCalledWith({
       candidateId: "c1",
       candidateName: "张三",
-      interviewStatus: "待安排",
       notificationStatus: "未通知",
     })
+  })
+
+  it("creates only one shell under concurrent calls", async () => {
+    const createInterview = vi.fn().mockImplementation(
+      () => new Promise((r) => setTimeout(() => r({ record_id: "rec_iv", fields: {} }), 30)),
+    )
+    const bitable = {
+      findOpenInterviewByCandidateId: vi.fn().mockResolvedValue(undefined),
+      createInterview,
+    } as unknown as BitableTables
+
+    const payload = {
+      candidateRecordId: "rec_c",
+      candidateId: "c1",
+      candidateName: "张三",
+      status: "技术面" as const,
+    }
+    await Promise.all([
+      ensureInterviewShell(bitable, payload),
+      ensureInterviewShell(bitable, payload),
+    ])
+
+    expect(createInterview).toHaveBeenCalledTimes(1)
   })
 
   it("skips when an open Interview already exists", async () => {

@@ -112,3 +112,14 @@ export function normalizeOpenId(raw: unknown): string | undefined {
   const match = v.match(/ou_[a-z0-9]{8,}/i)
   return match?.[0]
 }
+
+/** Interview row is still waiting for HR to schedule (not yet in active interview). */
+export function isInterviewPendingSchedule(status: string | undefined): boolean {
+  if (!status) return true
+  // "未通知" sometimes lands in interviewStatus when HR confuses the two columns.
+  return status === "待安排" || status === "未通知"
+}
+
+export function isInterviewAlreadyNotified(notificationStatus: string | undefined): boolean {
+  return notificationStatus === "已通知" || notificationStatus === "已提醒面评"
+}

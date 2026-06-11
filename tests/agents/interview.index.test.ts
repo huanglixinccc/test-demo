@@ -11,10 +11,15 @@ function deps(currentStatus = "技术面") {
     record_id: "recCand",
     fields: { status: currentStatus },
   })
+  const getInterview = vi.fn().mockResolvedValue({
+    record_id: "rec1",
+    fields: { notificationStatus: "未通知" },
+  })
   const bitable = {
     updateInterview,
     updateCandidate,
     findCandidateByCandidateId,
+    getInterview,
   } as unknown as BitableTables
   const im = {
     sendCardToUser: vi.fn().mockResolvedValue(undefined),
@@ -83,6 +88,32 @@ describe("InterviewAgent", () => {
 
     expect(d.updateCandidate).not.toHaveBeenCalled()
     expect(d.updateInterview).toHaveBeenCalledWith("rec1", { interviewStatus: "已完成" })
+  })
+
+  it("skips duplicate notify when interview row is already 已通知", async () => {
+    const getInterview = vi.fn().mockResolvedValue({
+      record_id: "rec1",
+      fields: { notificationStatus: "已通知" },
+    })
+    const d = deps()
+    const bitable = {
+      ...d.bitable,
+      getInterview,
+    } as unknown as BitableTables
+    registerInterviewAgent({ bitable, im: d.im, hrOpenIds: ["ou_hr"] })
+
+    bus.emit("InterviewScheduled", {
+      interviewRecordId: "rec1",
+      candidateId: "c1",
+      candidateName: "张三",
+      interviewerName: "李四",
+      interviewerOpenId: "ou_int",
+      interviewTime: 1_700_000_000_000,
+    })
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(d.im.sendCardToUser).not.toHaveBeenCalled()
+    expect(d.updateInterview).not.toHaveBeenCalled()
   })
 
   it("creates Interview shell when candidate enters 技术面", async () => {

@@ -1,7 +1,8 @@
 import type { BitableTables, CandidateStatus, ReviewResult } from "../../feishu/bitable.js"
 import type { FeishuIM } from "../../feishu/im.js"
 import { bus } from "../../events/bus.js"
-import { normalizeBitableFieldValue, isCandidateStatus } from "../../feishu/bitableFields.js"
+import { normalizeBitableFieldValue, isCandidateStatus, isInterviewAlreadyNotified } from "../../feishu/bitableFields.js"
+import { runOnce } from "../../utils/runOnce.js"
 import { ensureInterviewShell } from "./autoCreate.js"
 import { nextCandidateStatus } from "./stateMachine.js"
 import { buildInterviewNotifyCard, buildHrSummaryText } from "./notify.js"
@@ -19,21 +20,33 @@ export function registerInterviewAgent(deps: InterviewAgentDeps): void {
   })
 
   bus.on("InterviewScheduled", async (payload) => {
-    try {
-      const card = buildInterviewNotifyCard({
-        candidateName: payload.candidateName,
-        interviewerName: payload.interviewerName,
-        interviewTime: payload.interviewTime,
-        recordId: payload.interviewRecordId,
-      })
-      await deps.im.sendCardToUser(payload.interviewerOpenId, card)
-      await deps.bitable.updateInterview(payload.interviewRecordId, {
-        interviewStatus: "待面试",
-        notificationStatus: "已通知",
-      })
-    } catch (err) {
-      logger.error({ err }, "interviewAgent.scheduled.failed")
-    }
+    await runOnce(`notify:${payload.interviewRecordId}`, async () => {
+      try {
+        const row = await deps.bitable.getInterview(payload.interviewRecordId)
+        const notificationStatus = normalizeBitableFieldValue(row.fields.notificationStatus)
+        if (isInterviewAlreadyNotified(notificationStatus)) {
+          logger.info(
+            { recordId: payload.interviewRecordId },
+            "interviewAgent.scheduled.already_notified_skip",
+          )
+          return
+        }
+
+        const card = buildInterviewNotifyCard({
+          candidateName: payload.candidateName,
+          interviewerName: payload.interviewerName,
+          interviewTime: payload.interviewTime,
+          recordId: payload.interviewRecordId,
+        })
+        await deps.im.sendCardToUser(payload.interviewerOpenId, card)
+        await deps.bitable.updateInterview(payload.interviewRecordId, {
+          interviewStatus: "待面试",
+          notificationStatus: "已通知",
+        })
+      } catch (err) {
+        logger.error({ err }, "interviewAgent.scheduled.failed")
+      }
+    })
   })
 
   bus.on("ReviewSubmitted", async (payload) => {
