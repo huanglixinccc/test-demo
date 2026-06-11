@@ -7,6 +7,50 @@
 - 一个解析到本机的域名（例：`recruit.example.com`）
 - Let's Encrypt（acme.sh）
 
+## 与已有 Node 服务共存
+
+如果你的服务器上已经跑着别的 Node 服务（NestJS / Express 等），**不会冲突**，只需避开以下三类资源：
+
+### 0.1 端口
+```bash
+sudo lsof -i :3000      # 默认端口是否被占
+ss -tlnp | grep :3000
+```
+- **被占** → 改 `.env` 里 `PORT=3100`（或其它空闲端口），Nginx `proxy_pass` 同步改成 `http://127.0.0.1:3100`
+- **没占** → 默认 3000 即可
+
+### 0.2 域名 / Nginx
+**强烈推荐**：给 recruit-agent 单独申请一个**子域名**（如 `recruit.example.com`），新增独立 server block，**不要**改你已有服务的 Nginx 配置。
+
+不要做的事：把 recruit-agent 挂在已有域名的 path 下（例如 `api.example.com/recruit/*`）。原因：
+- 飞书事件订阅 URL 是固定路径 `/webhook/feishu`，path 前缀复用会改变路径
+- 已有 server 的 `client_max_body_size`、CORS、header 处理可能干扰飞书加密 payload
+
+### 0.3 PM2 进程名
+```bash
+pm2 list
+```
+默认 `name: "recruit-agent"`，正常不会和你的 NestJS 重名。重名了改 `ecosystem.config.cjs` 的 `name` 即可。
+
+### 0.4 Node 版本不一致
+如果已有服务在 Node 16 或更老版本上，装 [`nvm`](https://github.com/nvm-sh/nvm) 同时管两个版本，在 `ecosystem.config.cjs` 里指定 interpreter：
+
+```js
+module.exports = {
+  apps: [{
+    name: "recruit-agent",
+    script: "dist/app.js",
+    interpreter: "/home/<user>/.nvm/versions/node/v18.20.4/bin/node",
+    // ... 其它配置不变
+  }]
+}
+```
+
+### 0.5 目录隔离
+部署到独立目录（例 `/opt/recruit-agent`），不要和已有服务复用代码目录、日志目录、`.env`。
+
+---
+
 ## 部署步骤
 
 ### 1. 拉代码 + 安装 + 构建
