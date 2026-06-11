@@ -53,16 +53,7 @@ export function makeBitableChangeHandler(opts: {
     if (opts.candidateTableId && ev.table_id === opts.candidateTableId) {
       const actionsByRecord = indexActionsByRecord(ev.action_list)
       for (const recordId of recordIds) {
-        const actions = actionsByRecord.get(recordId)
-        const statusFromEvent = extractStatusFromActions(actions)
-        const isNewRecord = actions?.some((a) => a.action === "record_added") ?? false
-        // Only react when status actually changed (or row created). Feishu fires
-        // webhooks on every field edit; without this we re-run shell creation and
-        // referral checks on unrelated candidate edits.
-        if (!statusFromEvent && !isNewRecord) {
-          logger.debug({ recordId }, "bitableChange.candidate.skip_no_status_change")
-          continue
-        }
+        const statusFromEvent = extractStatusFromActions(actionsByRecord.get(recordId))
         let record
         try {
           record = await fetchCandidateWithRetry(opts.bitable, recordId)

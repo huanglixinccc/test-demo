@@ -242,7 +242,7 @@ describe("bitable change handler", () => {
     expect(got).not.toHaveBeenCalled()
   })
 
-  it("does not emit CandidateStatusChanged when status field was not edited", async () => {
+  it("still emits CandidateStatusChanged when after_value lacks status (Feishu UX)", async () => {
     const bitable = {
       getInterview: vi.fn(),
       getCandidate: vi.fn().mockResolvedValue({
@@ -268,8 +268,9 @@ describe("bitable change handler", () => {
     }))
     await new Promise((r) => setImmediate(r))
 
-    expect(got).not.toHaveBeenCalled()
-    expect(bitable.getCandidate).not.toHaveBeenCalled()
+    expect(got).toHaveBeenCalledWith(
+      expect.objectContaining({ candidateId: "c1", status: "技术面" }),
+    )
   })
 
   it("emits InterviewScheduled when interviewStatus is 未通知 (mis-filed column)", async () => {

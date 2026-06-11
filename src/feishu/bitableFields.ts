@@ -80,10 +80,28 @@ export interface BitableRecordAction {
 export function extractCandidateStatusFromAction(
   action: BitableRecordAction,
 ): string | undefined {
-  if (action.action !== "record_edited") return undefined
-  for (const field of action.after_value ?? []) {
-    const value = normalizeBitableFieldValue(field.field_value)
-    if (isCandidateStatus(value)) return value
+  const fields =
+    action.action === "record_edited" || action.action === "record_added"
+      ? action.after_value
+      : undefined
+  for (const field of fields ?? []) {
+    const value = parseCandidateStatusFieldValue(field.field_value)
+    if (value) return value
+  }
+  return undefined
+}
+
+function parseCandidateStatusFieldValue(raw: unknown): CandidateStatus | undefined {
+  const direct = normalizeBitableFieldValue(raw)
+  if (isCandidateStatus(direct)) return direct
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw) as unknown
+      const fromParsed = normalizeBitableFieldValue(parsed)
+      if (isCandidateStatus(fromParsed)) return fromParsed
+    } catch {
+      // not JSON
+    }
   }
   return undefined
 }
