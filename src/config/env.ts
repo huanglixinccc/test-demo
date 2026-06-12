@@ -33,4 +33,13 @@ export const env = {
     baseUrl: optional("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
     model: optional("DEEPSEEK_MODEL", "deepseek-chat"),
   },
+  dashboardCorsOrigins: optional("DASHBOARD_CORS_ORIGINS", "*")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+  boss: {
+    enabled: optional("BOSS_OUTREACH_ENABLED", "true") === "true",
+    browserProfileDir: optional("BOSS_BROWSER_PROFILE", ".boss-browser-profile"),
+    cdpPort: Number(optional("BOSS_CDP_PORT", "9222")),
+  },
 }

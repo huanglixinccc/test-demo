@@ -25,6 +25,7 @@
 - `im:resource`
 - `bitable:app`
 - `contact:user.base:readonly`
+- `vc:reserve`（招聘看板创建飞书视频会议链接）
 
 > 个人版自建应用通常即时生效，企业版需要管理员审批。
 
@@ -61,11 +62,12 @@
 | phone | 文本 |
 | email | 文本 |
 | skills | 多选 |
-| resumeSource | 单选（飞书机器人 / 内推 / 手动 / 邮件） |
+| resumeSource | 单选（飞书机器人 / 内推 / 手动 / 邮件 / Boss直聘 / 猎聘 / 脉脉 / 猎头 / 校招 / 官网 / 其他） |
 | resumeUrl | 文本 |
 | status | 单选（待筛选 / 初筛通过 / 技术面 / HR面 / Offer / 入职 / 淘汰） |
 | matchScore | 数字 |
 | priority | 单选（高 / 中 / 低） |
+| rejectReason | 多行文本（淘汰原因，看板填写后写入） |
 | createdAt | 日期 |
 
 #### Interview
@@ -81,6 +83,12 @@
 | reviewContent | 多行文本 |
 | reviewResult | 单选（通过 / 待定 / 淘汰） |
 | notificationStatus | 单选（未通知 / 已通知 / 已提醒面评） |
+| meetingUrl | 文本（飞书视频会议链接，看板创建后自动写入） |
+| exceptionType | 单选（候选人爽约 / 面评超时 / 面试官取消 / 改期） |
+| exceptionStatus | 单选（无 / 待处理 / 已处理） |
+| escalationLevel | 数字（0~3，系统自动维护） |
+| lastRemindedAt | 日期（上次提醒时间） |
+| exceptionNote | 多行文本（异常说明，可选） |
 
 #### Referral
 | 字段名 | 类型 |
@@ -96,9 +104,11 @@
 | 字段名 | 类型 |
 | --- | --- |
 | jobId | 文本 |
-| position | 文本 |
-| requirement | 多行文本 |
+| position | 文本（需与候选人 `position` 一致或可模糊匹配，如「后端工程师」） |
+| requirement | 多行文本（岗位要求，用于 AI 匹配打分） |
 | headCount | 数字 |
+
+> 候选人入库后会自动按 `position` 匹配 JD，写入 `matchScore`（技能契合度 0-100）和 `priority`（高/中/低）。**请至少维护一条与在招岗位对应的 JD 记录。**
 
 ### A6. 把应用加为多维表格协作者
 

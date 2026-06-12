@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest"
-import type { AxiosInstance } from "axios"
+import axios, { type AxiosInstance } from "axios"
 import { createDeepSeekProvider } from "../../src/ai/deepseek.js"
+import { AIProviderError } from "../../src/ai/errors.js"
 
 describe("DeepSeek provider", () => {
   it("posts to /chat/completions and returns content", async () => {
@@ -50,5 +51,30 @@ describe("DeepSeek provider", () => {
       client: fakeClient,
     })
     await expect(provider.chat([{ role: "user", content: "u" }])).rejects.toThrow(/no content/)
+  })
+
+  it("maps 402 insufficient balance to AIProviderError", async () => {
+    const err = new axios.AxiosError(
+      "Payment Required",
+      "ERR_BAD_REQUEST",
+      undefined,
+      undefined,
+      {
+        status: 402,
+        statusText: "Payment Required",
+        headers: {},
+        config: { headers: new axios.AxiosHeaders() },
+        data: { error: { message: "Insufficient Balance" } },
+      },
+    )
+    const post = vi.fn().mockRejectedValue(err)
+    const provider = createDeepSeekProvider({
+      apiKey: "k",
+      baseUrl: "https://x",
+      model: "m",
+      client: { post } as unknown as AxiosInstance,
+    })
+    await expect(provider.chat([{ role: "user", content: "u" }])).rejects.toThrow(AIProviderError)
+    await expect(provider.chat([{ role: "user", content: "u" }])).rejects.toThrow(/余额不足/)
   })
 })

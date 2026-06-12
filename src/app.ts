@@ -9,6 +9,10 @@ export interface AppDeps {
   tableIds: { candidate: string; interview: string; referral: string; jd: string }
   hrOpenIds: string[]
   deepseek: { apiKey: string; baseUrl: string; model: string }
+  dashboardCorsOrigins?: string[]
+  bossEnabled?: boolean
+  bossProfileDir?: string
+  bossCdpPort?: number
 }
 
 export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
@@ -24,9 +28,14 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { registerInterviewAgent } = await import("./agents/interview/index.js")
   const { registerReferralAgent } = await import("./agents/referral/index.js")
   const { registerAnalyticsAgent } = await import("./agents/analytics/index.js")
-  const { startReviewReminder } = await import("./scheduler/reviewReminder.js")
+  const { registerJdMatchAgent } = await import("./agents/jdMatch/index.js")
+  const { startInterviewWatchdog } = await import("./scheduler/interviewWatchdog.js")
+  const { createDashboardRouter, dashboardCorsMiddleware } = await import("./api/dashboard/router.js")
+  const { FeishuVC } = await import("./feishu/vc.js")
 
   const app = express()
+  app.use(express.json({ limit: "2mb" }))
+  app.use(dashboardCorsMiddleware(deps.dashboardCorsOrigins ?? ["*"]))
 
   const client = new FeishuClient({ appId: deps.feishuAppId, appSecret: deps.feishuAppSecret })
   const bitable = new BitableTables(client, deps.bitableAppToken, deps.tableIds)
@@ -38,6 +47,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   registerInterviewAgent({ bitable, im, hrOpenIds: deps.hrOpenIds })
   registerReferralAgent({ ai, bitable, im })
   registerAnalyticsAgent({ ai, bitable, im })
+  registerJdMatchAgent({ ai, bitable })
 
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
   dispatcher.register(
@@ -46,6 +56,20 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
       bitable,
       interviewTableId: deps.tableIds.interview,
       candidateTableId: deps.tableIds.candidate,
+    }),
+  )
+
+  const vc = new FeishuVC(client)
+  app.use(
+    "/api/dashboard",
+    createDashboardRouter({
+      bitable,
+      vc,
+      meetingOwnerFallback: deps.hrOpenIds[0] ?? "",
+      ai,
+      bossEnabled: deps.bossEnabled,
+      bossProfileDir: deps.bossProfileDir,
+      bossCdpPort: deps.bossCdpPort,
     }),
   )
 
@@ -69,7 +93,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
     })
   })
 
-  startReviewReminder({ bitable, im })
+  startInterviewWatchdog({ bitable, im, hrOpenIds: deps.hrOpenIds })
 
   return app
 }

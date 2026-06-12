@@ -36,6 +36,14 @@ export interface CandidateStatusChangedPayload {
   status: string
 }
 
+export interface CandidateCreatedPayload {
+  candidateRecordId: string
+  candidateId: string
+  name: string | null
+  position: string | null
+  skills: string[]
+}
+
 export interface AnalyticsQueryReceivedPayload {
   text: string
   senderOpenId: string
@@ -48,5 +56,6 @@ export type EventMap = {
   ReviewSubmitted: ReviewSubmittedPayload
   ReferralReceived: ReferralReceivedPayload
   CandidateStatusChanged: CandidateStatusChangedPayload
+  CandidateCreated: CandidateCreatedPayload
   AnalyticsQueryReceived: AnalyticsQueryReceivedPayload
 }

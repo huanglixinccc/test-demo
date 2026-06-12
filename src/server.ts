@@ -11,6 +11,10 @@ const app = await createWiredApp({
   tableIds: env.tables,
   hrOpenIds: env.hrOpenIds,
   deepseek: env.deepseek,
+  dashboardCorsOrigins: env.dashboardCorsOrigins,
+  bossEnabled: env.boss.enabled,
+  bossProfileDir: env.boss.browserProfileDir,
+  bossCdpPort: env.boss.cdpPort,
 })
 
 app.listen(env.port, () => {

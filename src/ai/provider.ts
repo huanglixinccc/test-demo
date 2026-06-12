@@ -3,6 +3,12 @@ export interface ChatMessage {
   content: string
 }
 
+export interface AIChatOptions {
+  temperature?: number
+  maxTokens?: number
+}
+
 export interface AIProvider {
-  chat(messages: ChatMessage[], opts?: { temperature?: number; maxTokens?: number }): Promise<string>
+  chat(messages: ChatMessage[], opts?: AIChatOptions): Promise<string>
+  chatStream?(messages: ChatMessage[], opts?: AIChatOptions): AsyncGenerator<string>
 }

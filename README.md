@@ -41,10 +41,10 @@ pm2 start ecosystem.config.cjs
 | M3 面试通知 | ✅ | 飞书事件订阅（Bitable Interview 行变更） |
 | M3 面评回写 | ✅ | 面试官在 Bitable 填 reviewResult |
 | M3 状态推进 | ✅ | 自动 |
-| M3 定时提醒填面评 | ✅ | node-cron 每 5 分钟扫描 |
+| M3 面试兜底提醒 | ✅ | 爽约检测 + 面评超时升级 HR（每 5 分钟） |
 | M2 内推流程 | 🔜 后续迭代 | - |
 | M4 漏斗统计 | 🔜 后续迭代 | - |
-| JD 匹配评分 | 🔜 后续迭代 | - |
+| JD 匹配评分 | ✅ 已实现 | 入表自动匹配 JD，写 matchScore / priority |
 | AI 面评草稿 | 🔜 后续迭代 | - |
 
 ## 目录结构

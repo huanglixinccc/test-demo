@@ -1,4 +1,5 @@
 import type { FeishuClient } from "./client.js"
+import { normalizeBitableFieldValue } from "./bitableFields.js"
 
 export type CandidateStatus =
   | "待筛选"
@@ -13,6 +14,10 @@ export type ReviewResult = "通过" | "待定" | "淘汰"
 
 export type InterviewStatus = "待安排" | "待面试" | "待面评" | "已完成"
 
+export type InterviewExceptionType = "候选人爽约" | "面评超时" | "面试官取消" | "改期"
+
+export type InterviewExceptionStatus = "无" | "待处理" | "已处理"
+
 export interface CandidateFields {
   candidateId: string
   name: string | null
@@ -22,9 +27,12 @@ export interface CandidateFields {
   skills: string[]
   resumeSource: string
   resumeUrl?: string | null
+  /** Boss 等平台私信会话页链接，用于 Playwright 预填话术 */
+  platformChatUrl?: string | null
   status: CandidateStatus
   matchScore?: number | null
   priority?: "高" | "中" | "低" | null
+  rejectReason?: string | null
   createdAt: number
 }
 
@@ -39,6 +47,19 @@ export interface InterviewFields {
   reviewContent?: string
   reviewResult?: ReviewResult
   notificationStatus?: "未通知" | "已通知" | "已提醒面评"
+  meetingUrl?: string | null
+  exceptionType?: InterviewExceptionType | null
+  exceptionStatus?: InterviewExceptionStatus | null
+  escalationLevel?: number | null
+  lastRemindedAt?: number | null
+  exceptionNote?: string | null
+}
+
+export interface JobDescriptionFields {
+  jobId?: string
+  position: string
+  requirement: string
+  headCount?: number | null
 }
 
 export interface ReferralFields {
@@ -177,6 +198,44 @@ export class BitableTables {
     })
   }
 
+  async listAllJDs(): Promise<BitableRecord<JobDescriptionFields>[]> {
+    const items: BitableRecord<JobDescriptionFields>[] = []
+    let pageToken: string | undefined
+    do {
+      const data = await this.client.request<{
+        items?: BitableRecord<JobDescriptionFields>[]
+        page_token?: string
+        has_more?: boolean
+      }>("POST", `${this.base(this.tables.jd)}/records/search`, {
+        data: {
+          page_size: 500,
+          ...(pageToken ? { page_token: pageToken } : {}),
+        },
+      })
+      items.push(...(data.items ?? []))
+      pageToken = data.has_more ? data.page_token : undefined
+    } while (pageToken)
+    return items
+  }
+
+  async findJdByPosition(
+    position: unknown,
+  ): Promise<BitableRecord<JobDescriptionFields> | undefined> {
+    const pos = normalizeBitableFieldValue(position)?.toLowerCase()
+    if (!pos) return undefined
+    const jds = await this.listAllJDs()
+    const normalized = jds.map((r) => ({
+      record: r,
+      title: normalizeBitableFieldValue(r.fields.position)?.toLowerCase() ?? "",
+    }))
+    const exact = normalized.find((j) => j.title === pos)
+    if (exact) return exact.record
+    const partial = normalized.find(
+      (j) => j.title && (j.title.includes(pos) || pos.includes(j.title)),
+    )
+    return partial?.record
+  }
+
   async createReferral(fields: ReferralFields): Promise<BitableRecord<ReferralFields>> {
     const data = await this.client.request<{ record: BitableRecord<ReferralFields> }>(
       "POST",
@@ -222,6 +281,46 @@ export class BitableTables {
         page_token?: string
         has_more?: boolean
       }>("POST", `${this.base(this.tables.candidate)}/records/search`, {
+        data: {
+          page_size: 500,
+          ...(pageToken ? { page_token: pageToken } : {}),
+        },
+      })
+      items.push(...(data.items ?? []))
+      pageToken = data.has_more ? data.page_token : undefined
+    } while (pageToken)
+    return items
+  }
+
+  async listAllReferrals(): Promise<BitableRecord<ReferralFields>[]> {
+    const items: BitableRecord<ReferralFields>[] = []
+    let pageToken: string | undefined
+    do {
+      const data = await this.client.request<{
+        items?: BitableRecord<ReferralFields>[]
+        page_token?: string
+        has_more?: boolean
+      }>("POST", `${this.base(this.tables.referral)}/records/search`, {
+        data: {
+          page_size: 500,
+          ...(pageToken ? { page_token: pageToken } : {}),
+        },
+      })
+      items.push(...(data.items ?? []))
+      pageToken = data.has_more ? data.page_token : undefined
+    } while (pageToken)
+    return items
+  }
+
+  async listAllInterviews(): Promise<BitableRecord<InterviewFields>[]> {
+    const items: BitableRecord<InterviewFields>[] = []
+    let pageToken: string | undefined
+    do {
+      const data = await this.client.request<{
+        items?: BitableRecord<InterviewFields>[]
+        page_token?: string
+        has_more?: boolean
+      }>("POST", `${this.base(this.tables.interview)}/records/search`, {
         data: {
           page_size: 500,
           ...(pageToken ? { page_token: pageToken } : {}),

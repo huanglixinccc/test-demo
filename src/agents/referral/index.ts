@@ -40,8 +40,9 @@ export function registerReferralAgent(deps: ReferralAgentDeps): void {
     const candidateId = uuid()
     const now = Date.now()
 
+    let createdRecord
     try {
-      await deps.bitable.createCandidate({
+      createdRecord = await deps.bitable.createCandidate({
         candidateId,
         name: parsed.name,
         position: parsed.position,
@@ -80,6 +81,14 @@ export function registerReferralAgent(deps: ReferralAgentDeps): void {
       )
       return
     }
+
+    bus.emit("CandidateCreated", {
+      candidateRecordId: createdRecord.record_id,
+      candidateId,
+      name: parsed.name,
+      position: parsed.position,
+      skills: parsed.skills,
+    })
 
     const card = buildReferralReplyCard({ candidateId, parsed })
     try {

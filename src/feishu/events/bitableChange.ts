@@ -62,6 +62,7 @@ export function makeBitableChangeHandler(opts: {
           continue
         }
         dispatchCandidate(record.record_id, record.fields, statusFromEvent)
+        maybeDispatchCandidateCreated(record)
       }
       return
     }
@@ -146,6 +147,24 @@ async function fetchCandidateWithRetry(
     }
   }
   throw lastErr
+}
+
+export function maybeDispatchCandidateCreated(
+  record: Awaited<ReturnType<BitableTables["getCandidate"]>>,
+): void {
+  const fields = record.fields
+  if (fields.matchScore != null) return
+
+  const candidateId = normalizeBitableFieldValue(fields.candidateId)
+  if (!candidateId) return
+
+  bus.emit("CandidateCreated", {
+    candidateRecordId: record.record_id,
+    candidateId,
+    name: normalizeBitableFieldValue(fields.name),
+    position: normalizeBitableFieldValue(fields.position),
+    skills: Array.isArray(fields.skills) ? fields.skills.map(String) : [],
+  })
 }
 
 export function dispatchCandidate(

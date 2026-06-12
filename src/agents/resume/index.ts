@@ -35,8 +35,9 @@ export function registerResumeAgent(deps: ResumeAgentDeps): void {
     }
 
     const candidateId = uuid()
+    let createdRecord
     try {
-      await deps.bitable.createCandidate({
+      createdRecord = await deps.bitable.createCandidate({
         candidateId,
         name: parsed.name,
         position: parsed.position,
@@ -52,6 +53,14 @@ export function registerResumeAgent(deps: ResumeAgentDeps): void {
       await deps.im.sendTextToUser(payload.senderOpenId, "写入失败，请联系管理员")
       return
     }
+
+    bus.emit("CandidateCreated", {
+      candidateRecordId: createdRecord.record_id,
+      candidateId,
+      name: parsed.name,
+      position: parsed.position,
+      skills: parsed.skills,
+    })
 
     const card = buildResumeReplyCard({ candidateId, parsed })
     try {
