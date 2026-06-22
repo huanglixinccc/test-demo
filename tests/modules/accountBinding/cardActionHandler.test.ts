@@ -27,7 +27,7 @@ function fakeIm(): FeishuIM {
 }
 
 describe("accountBinding card action handler", () => {
-  it("sends template card and returns toast on start binding action", async () => {
+  it("sends binding form card and returns toast on start binding action", async () => {
     const im = fakeIm()
     const handler = makeAccountBindingCardActionHandler(im)
 
@@ -39,10 +39,14 @@ describe("accountBinding card action handler", () => {
       },
     }))
 
-    expect(im.sendCardToUser).toHaveBeenCalledWith("ou_bind", {
-      type: "template",
-      data: { template_id: "AAqNR3G7hMhTQ" },
-    })
+    expect(im.sendCardToUser).toHaveBeenCalledWith("ou_bind", expect.objectContaining({
+      header: expect.objectContaining({
+        title: expect.objectContaining({ content: "请选择招聘渠道和账号" }),
+      }),
+    }))
+    expect(JSON.stringify(vi.mocked(im.sendCardToUser).mock.calls[0][1])).toContain(
+      "https://rj01h11p8902.taient.com/",
+    )
     expect(response).toEqual({
       toast: { type: "info", content: "正在打开绑定表单…" },
     })
@@ -75,7 +79,7 @@ describe("accountBinding card action handler", () => {
     expect(im.sendCardToUser).not.toHaveBeenCalled()
   })
 
-  it("returns error toast when template send fails", async () => {
+  it("returns error toast when binding form send fails", async () => {
     const im = fakeIm()
     vi.mocked(im.sendCardToUser).mockRejectedValue(new Error("200381"))
     const handler = makeAccountBindingCardActionHandler(im)
@@ -88,12 +92,12 @@ describe("accountBinding card action handler", () => {
     expect(response).toEqual({
       toast: {
         type: "error",
-        content: "打开绑定表单失败，请确认应用已授权该卡片模板",
+        content: "打开绑定表单失败，请稍后重试",
       },
     })
   })
 
-  it("logs submit result and notifies user on template card submit", async () => {
+  it("logs submit result and notifies user on form submit without extra open card", async () => {
     const im = fakeIm()
     const handler = makeAccountBindingCardActionHandler(im)
 
@@ -110,17 +114,7 @@ describe("accountBinding card action handler", () => {
     }))
 
     expect(im.sendTextToUser).toHaveBeenCalledWith("ou_bind", "绑定成功")
-    expect(im.sendCardToUser).toHaveBeenCalledWith(
-      "ou_bind",
-      expect.objectContaining({
-        header: expect.objectContaining({
-          title: expect.objectContaining({ content: "绑定成功" }),
-        }),
-      }),
-    )
-    expect(JSON.stringify(vi.mocked(im.sendCardToUser).mock.calls[0][1])).toContain(
-      "https://rj01h11p8902.taient.com/",
-    )
+    expect(im.sendCardToUser).not.toHaveBeenCalled()
     expect(response).toEqual({
       toast: { type: "success", content: "绑定成功" },
     })
@@ -161,6 +155,7 @@ describe("accountBinding card action handler", () => {
     }))
 
     expect(im.sendTextToUser).toHaveBeenCalledWith("ou_bind", "绑定成功")
+    expect(im.sendCardToUser).not.toHaveBeenCalled()
     expect(response).toEqual({
       toast: { type: "success", content: "绑定成功" },
     })
