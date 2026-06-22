@@ -14,10 +14,14 @@ import {
 const BINDING_OPEN_URL_BEHAVIOR = {
   type: "open_url",
   default_url: BINDING_CHANNEL_OPEN_URL,
-  pc_url: BINDING_CHANNEL_OPEN_URL,
+  pc_url: buildFeishuSidebarOpenUrl(BINDING_CHANNEL_OPEN_URL),
   android_url: BINDING_CHANNEL_OPEN_URL,
   ios_url: BINDING_CHANNEL_OPEN_URL,
 } as const
+
+function buildFeishuSidebarOpenUrl(url: string): string {
+  return `https://applink.feishu.cn/client/web_url/open?mode=sidebar-semi&max_width=800&reload=false&url=${encodeURIComponent(url)}`
+}
 
 export function buildBindingCard() {
   return {
@@ -60,54 +64,60 @@ export function buildSelectTemplateCardPayload() {
 }
 
 /**
- * 与模板卡片等价的绑定表单；提交按钮同时 open_url + form_action，
+ * JSON 2.0 绑定表单；提交按钮 form_action_type=submit + open_url，
  * 用户点一次「提交」即打开渠道页并回传表单数据。
  */
 export function buildBindingSelectCard() {
   return {
-    config: { wide_screen_mode: true },
+    schema: "2.0",
+    config: {
+      wide_screen_mode: true,
+      update_multi: true,
+    },
     header: {
       template: "blue",
       title: { tag: "plain_text", content: "请选择招聘渠道和账号" },
     },
-    elements: [
-      {
-        tag: "form",
-        name: "binding_form",
-        elements: [
-          {
-            tag: "div",
-            text: { tag: "plain_text", content: "招聘渠道" },
-          },
-          {
-            tag: "select_static",
-            name: BINDING_FORM_CHANNEL_FIELD,
-            placeholder: { tag: "plain_text", content: "请选择渠道" },
-            options: buildBindingChannelSelectOptions(),
-          },
-          { tag: "hr" },
-          {
-            tag: "div",
-            text: { tag: "plain_text", content: "渠道账号" },
-          },
-          {
-            tag: "select_static",
-            name: BINDING_FORM_ACCOUNT_FIELD,
-            placeholder: { tag: "plain_text", content: "请选择账号" },
-            options: buildBindingAccountSelectOptions(),
-          },
-          { tag: "hr" },
-          {
-            tag: "button",
-            name: BINDING_SUBMIT_BUTTON_NAME,
-            text: { tag: "plain_text", content: "提交" },
-            type: "primary",
-            complex_interaction: true,
-            behaviors: [BINDING_OPEN_URL_BEHAVIOR, { type: "form_action", behavior: "submit" }],
-          },
-        ],
-      },
-    ],
+    body: {
+      elements: [
+        {
+          tag: "form",
+          name: "binding_form",
+          elements: [
+            {
+              tag: "div",
+              text: { tag: "plain_text", content: "招聘渠道" },
+            },
+            {
+              tag: "select_static",
+              name: BINDING_FORM_CHANNEL_FIELD,
+              placeholder: { tag: "plain_text", content: "请选择渠道" },
+              options: buildBindingChannelSelectOptions(),
+            },
+            { tag: "hr" },
+            {
+              tag: "div",
+              text: { tag: "plain_text", content: "渠道账号" },
+            },
+            {
+              tag: "select_static",
+              name: BINDING_FORM_ACCOUNT_FIELD,
+              placeholder: { tag: "plain_text", content: "请选择账号" },
+              options: buildBindingAccountSelectOptions(),
+            },
+            { tag: "hr" },
+            {
+              tag: "button",
+              name: BINDING_SUBMIT_BUTTON_NAME,
+              form_action_type: "submit",
+              text: { tag: "plain_text", content: "提交" },
+              type: "primary_filled",
+              behaviors: [BINDING_OPEN_URL_BEHAVIOR],
+            },
+          ],
+        },
+      ],
+    },
   }
 }
 
@@ -115,7 +125,7 @@ export function buildSelectTemplateCardResponse() {
   return {
     toast: {
       type: "info",
-      content: "正在打开绑定表单…",
+      content: "正在打开绑定表单，请在最新卡片中提交",
     },
   }
 }

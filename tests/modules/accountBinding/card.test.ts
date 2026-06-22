@@ -41,7 +41,7 @@ describe("accountBinding card", () => {
 
   it("buildSelectTemplateCardResponse returns toast", () => {
     expect(buildSelectTemplateCardResponse()).toEqual({
-      toast: { type: "info", content: "正在打开绑定表单…" },
+      toast: { type: "info", content: "正在打开绑定表单，请在最新卡片中提交" },
     })
   })
 
@@ -51,17 +51,20 @@ describe("accountBinding card", () => {
     })
   })
 
-  it("buildBindingSelectCard submit button opens url and submits form", () => {
+  it("buildBindingSelectCard uses JSON 2.0 form submit with open_url", () => {
     const card = buildBindingSelectCard()
     const serialized = JSON.stringify(card)
 
+    expect(card.schema).toBe("2.0")
     expect(card.header.title.content).toBe("请选择招聘渠道和账号")
     expect(serialized).toContain(BINDING_FORM_CHANNEL_FIELD)
     expect(serialized).toContain(BINDING_FORM_ACCOUNT_FIELD)
     expect(serialized).toContain(BINDING_SUBMIT_BUTTON_NAME)
     expect(serialized).toContain(BINDING_CHANNEL_OPEN_URL)
+    expect(serialized).toContain('"form_action_type":"submit"')
     expect(serialized).toContain('"type":"open_url"')
-    expect(serialized).toContain('"type":"form_action"')
-    expect(serialized).toContain('"complex_interaction":true')
+    expect(serialized).toContain("applink.feishu.cn")
+    expect(serialized).not.toContain('"type":"form_action"')
+    expect(serialized).not.toContain("complex_interaction")
   })
 })

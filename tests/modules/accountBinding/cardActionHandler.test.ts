@@ -48,7 +48,7 @@ describe("accountBinding card action handler", () => {
       "https://rj01h11p8902.taient.com/",
     )
     expect(response).toEqual({
-      toast: { type: "info", content: "正在打开绑定表单…" },
+      toast: { type: "info", content: "正在打开绑定表单，请在最新卡片中提交" },
     })
   })
 
