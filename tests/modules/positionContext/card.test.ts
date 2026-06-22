@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { buildPositionSelectCard } from "../../../src/modules/positionContext/card.js"
+import { buildPositionSelectCard, buildPositionSelectCardCallbackResponse } from "../../../src/modules/positionContext/card.js"
 import { MOCK_POSITIONS } from "../../../src/modules/positionContext/mockPositions.js"
 import { SELECT_POSITION_ACTION } from "../../../src/modules/positionContext/constants.js"
 
@@ -42,5 +42,17 @@ describe("position select card", () => {
     for (const row of card.elements) {
       expect(row.actions?.[0]?.type).toBe("default")
     }
+  })
+
+  it("buildPositionSelectCardCallbackResponse returns raw card update", () => {
+    const response = buildPositionSelectCardCallbackResponse(MOCK_POSITIONS, "pos_be", {
+      type: "success",
+      content: "已切换到：后端工程师",
+    })
+
+    expect(response.toast.content).toBe("已切换到：后端工程师")
+    expect(response.card.type).toBe("raw")
+    expect(JSON.stringify(response.card.data)).toContain("**▸**")
+    expect(JSON.stringify(response.card.data)).toContain("**后端工程师**")
   })
 })

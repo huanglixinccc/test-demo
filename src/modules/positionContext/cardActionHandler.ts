@@ -3,10 +3,12 @@ import type { CardActionHandler } from "../../webhook/cardAction.js"
 import type { FeishuIM } from "../../feishu/im.js"
 import { logger } from "../../utils/logger.js"
 import { SELECT_POSITION_ACTION } from "./constants.js"
+import { buildPositionSelectCardCallbackResponse } from "./card.js"
 import { buildClarificationCard, buildLinkPositionCard } from "./linkPositionCard.js"
 import {
   findMockPosition,
   isWorkspacePositionPlatformLinked,
+  MOCK_POSITIONS,
 } from "./mockPositions.js"
 import { positionContextStore } from "./store.js"
 
@@ -73,21 +75,26 @@ export function makePositionSelectCardActionHandler(im: FeishuIM): CardActionHan
     try {
       if (isWorkspacePositionPlatformLinked(position.id)) {
         await sendClarificationCard(im, operatorOpenId, position.name)
-        return {
-          toast: { type: "success", content: `已发送【${position.name}】澄清消息` },
-        }
+        return buildPositionSelectCardCallbackResponse(MOCK_POSITIONS, position.id, {
+          type: "success",
+          content: `已切换到：${position.name}，已发送澄清消息`,
+        })
       }
 
       await im.sendCardToUser(
         operatorOpenId,
         buildLinkPositionCard({ positionId: position.id, positionName: position.name }),
       )
-      return {
-        toast: { type: "info", content: "请完成平台关联后点击确认" },
-      }
+      return buildPositionSelectCardCallbackResponse(MOCK_POSITIONS, position.id, {
+        type: "info",
+        content: `已切换到：${position.name}，请完成平台关联`,
+      })
     } catch (err) {
       logger.error({ err, openId: operatorOpenId }, "positionContext.workspace.select_failed")
-      return { toast: { type: "error", content: "操作失败，请稍后重试" } }
+      return buildPositionSelectCardCallbackResponse(MOCK_POSITIONS, position.id, {
+        type: "error",
+        content: "后续操作失败，但职位已切换",
+      })
     }
   }
 }

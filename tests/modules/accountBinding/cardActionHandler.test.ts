@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 import { makeAccountBindingCardActionHandler } from "../../../src/modules/accountBinding/cardActionHandler.js"
-import { START_BINDING_ACTION, BINDING_CHANNEL_OPEN_URL } from "../../../src/modules/accountBinding/constants.js"
+import { START_BINDING_ACTION } from "../../../src/modules/accountBinding/constants.js"
 import type { FeishuIM } from "../../../src/feishu/im.js"
 
 function envelope(event: unknown) {
@@ -39,10 +39,11 @@ describe("accountBinding card action handler", () => {
       },
     }))
 
-    expect(im.sendCardToUser).toHaveBeenCalledWith("ou_bind", {
-      type: "template",
-      data: { template_id: "AAqNR3G7hMhTQ" },
-    })
+    expect(im.sendCardToUser).toHaveBeenCalledWith("ou_bind", expect.objectContaining({
+      header: expect.objectContaining({
+        title: expect.objectContaining({ content: "绑定渠道账号" }),
+      }),
+    }))
     expect(response).toEqual({
       toast: { type: "info", content: "正在打开绑定表单…" },
     })
@@ -75,7 +76,7 @@ describe("accountBinding card action handler", () => {
     expect(im.sendCardToUser).not.toHaveBeenCalled()
   })
 
-  it("returns error toast when template send fails", async () => {
+  it("returns error toast when binding form send fails", async () => {
     const im = fakeIm()
     vi.mocked(im.sendCardToUser).mockRejectedValue(new Error("200381"))
     const handler = makeAccountBindingCardActionHandler(im)
@@ -88,7 +89,7 @@ describe("accountBinding card action handler", () => {
     expect(response).toEqual({
       toast: {
         type: "error",
-        content: "打开绑定表单失败，请确认应用已授权该卡片模板",
+        content: "打开绑定表单失败，请稍后重试",
       },
     })
   })
@@ -112,7 +113,6 @@ describe("accountBinding card action handler", () => {
     expect(im.sendTextToUser).toHaveBeenCalledWith("ou_bind", "绑定成功")
     expect(response).toEqual({
       toast: { type: "success", content: "绑定成功" },
-      open_url: BINDING_CHANNEL_OPEN_URL,
     })
   })
 
@@ -153,7 +153,6 @@ describe("accountBinding card action handler", () => {
     expect(im.sendTextToUser).toHaveBeenCalledWith("ou_bind", "绑定成功")
     expect(response).toEqual({
       toast: { type: "success", content: "绑定成功" },
-      open_url: BINDING_CHANNEL_OPEN_URL,
     })
   })
 })

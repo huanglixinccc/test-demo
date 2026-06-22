@@ -65,3 +65,17 @@ export function buildPositionAlreadyCurrentResponse(position: WorkspacePosition)
     },
   }
 }
+
+export function buildPositionSelectCardCallbackResponse(
+  positions: WorkspacePosition[],
+  currentPositionId: string | null,
+  toast: { type: string; content: string },
+) {
+  return {
+    toast,
+    card: {
+      type: "raw",
+      data: buildPositionSelectCard(positions, currentPositionId),
+    },
+  }
+}

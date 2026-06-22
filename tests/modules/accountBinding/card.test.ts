@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest"
-import { buildBindingCard, buildBindingSuccessResponse, buildSelectTemplateCardPayload, buildSelectTemplateCardResponse } from "../../../src/modules/accountBinding/card.js"
+import { buildBindingCard, buildBindingSelectCard, buildBindingSuccessResponse, buildSelectTemplateCardPayload, buildSelectTemplateCardResponse } from "../../../src/modules/accountBinding/card.js"
 import {
   BINDING_CHANNEL_OPEN_URL,
+  BINDING_FORM_ACCOUNT_FIELD,
+  BINDING_FORM_CHANNEL_FIELD,
   BINDING_SELECT_CARD_TEMPLATE_ID,
+  BINDING_SUBMIT_BUTTON_NAME,
   START_BINDING_ACTION,
 } from "../../../src/modules/accountBinding/constants.js"
 
@@ -36,10 +39,22 @@ describe("accountBinding card", () => {
     })
   })
 
-  it("buildBindingSuccessResponse returns toast and open_url", () => {
+  it("buildBindingSuccessResponse returns toast only", () => {
     expect(buildBindingSuccessResponse()).toEqual({
       toast: { type: "success", content: "绑定成功" },
-      open_url: BINDING_CHANNEL_OPEN_URL,
     })
+  })
+
+  it("buildBindingSelectCard includes form fields and open_url on submit", () => {
+    const card = buildBindingSelectCard()
+    const serialized = JSON.stringify(card)
+
+    expect(card.header.title.content).toBe("绑定渠道账号")
+    expect(serialized).toContain(BINDING_FORM_CHANNEL_FIELD)
+    expect(serialized).toContain(BINDING_FORM_ACCOUNT_FIELD)
+    expect(serialized).toContain(BINDING_SUBMIT_BUTTON_NAME)
+    expect(serialized).toContain(BINDING_CHANNEL_OPEN_URL)
+    expect(serialized).toContain('"type":"open_url"')
+    expect(serialized).toContain('"type":"form_action"')
   })
 })

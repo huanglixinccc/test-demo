@@ -5,8 +5,8 @@ import { logger } from "../../utils/logger.js"
 import { START_BINDING_ACTION } from "./constants.js"
 import {
   BINDING_SUCCESS_MESSAGE,
+  buildBindingSelectCard,
   buildBindingSuccessResponse,
-  buildSelectTemplateCardPayload,
   buildSelectTemplateCardResponse,
 } from "./card.js"
 import { parseCardSubmitFromAction, parseCardSubmitFromEvent } from "./submitData.js"
@@ -109,14 +109,14 @@ export function makeAccountBindingCardActionHandler(
     }
 
     try {
-      await im.sendCardToUser(operatorOpenId, buildSelectTemplateCardPayload())
-      logger.info({ openId: operatorOpenId }, "accountBinding.cardAction.template_sent")
+      await im.sendCardToUser(operatorOpenId, buildBindingSelectCard())
+      logger.info({ openId: operatorOpenId }, "accountBinding.cardAction.form_sent")
     } catch (err) {
-      logger.error({ err, openId: operatorOpenId }, "accountBinding.cardAction.template_failed")
+      logger.error({ err, openId: operatorOpenId }, "accountBinding.cardAction.form_failed")
       return {
         toast: {
           type: "error",
-          content: "打开绑定表单失败，请确认应用已授权该卡片模板",
+          content: "打开绑定表单失败，请稍后重试",
         },
       }
     }
