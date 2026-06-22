@@ -11,9 +11,9 @@ export interface RecruitmentPlatform {
 }
 
 export const MOCK_PLATFORM_POSITIONS: PlatformPositionOption[] = [
-  { id: "pos_hrbp", name: "HRBP", allPlatformsLinked: true },
-  { id: "pos_fe", name: "前端工程师", allPlatformsLinked: false },
+  { id: "pos_fe", name: "前端工程师", allPlatformsLinked: true },
   { id: "pos_be", name: "后端工程师", allPlatformsLinked: false },
+  { id: "pos_pm", name: "产品经理", allPlatformsLinked: false },
 ]
 
 export const MOCK_RECRUITMENT_PLATFORMS: RecruitmentPlatform[] = [

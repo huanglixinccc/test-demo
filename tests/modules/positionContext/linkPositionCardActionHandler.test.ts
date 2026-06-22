@@ -43,7 +43,7 @@ describe("link position card action handler", () => {
       operator: { open_id: "ou_hr" },
       action: {
         tag: "select_static",
-        option: "pos_hrbp",
+        option: "pos_fe",
         value: {
           action: LINK_POSITION_SELECT_ACTION,
           platformId: "platform_liepin",
@@ -55,12 +55,12 @@ describe("link position card action handler", () => {
       "ou_hr",
       expect.objectContaining({
         header: expect.objectContaining({
-          title: expect.objectContaining({ content: "您有一个新职位【HRBP】待澄清" }),
+          title: expect.objectContaining({ content: "您有一个新职位【前端工程师】待澄清" }),
         }),
       }),
     )
     expect(response).toEqual({
-      toast: { type: "success", content: "已发送【HRBP】澄清消息" },
+      toast: { type: "success", content: "已发送【前端工程师】澄清消息" },
     })
   })
 
@@ -72,7 +72,7 @@ describe("link position card action handler", () => {
       operator: { open_id: "ou_hr" },
       action: {
         tag: "select_static",
-        option: "pos_fe",
+        option: "pos_be",
         value: {
           action: LINK_POSITION_SELECT_ACTION,
           platformId: "platform_liepin",

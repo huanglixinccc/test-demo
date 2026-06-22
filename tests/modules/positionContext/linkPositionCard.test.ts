@@ -29,7 +29,7 @@ describe("link position card", () => {
     const expanded = JSON.stringify(
       buildLinkPositionCard({
         expandedPlatformId: "platform_liepin",
-        pendingPositionId: "pos_fe",
+        pendingPositionId: "pos_be",
       }),
     )
 
@@ -44,7 +44,7 @@ describe("link position card", () => {
     const expanded = JSON.stringify(
       buildLinkPositionCard({
         expandedPlatformId: "platform_boss",
-        pendingPositionId: "pos_hrbp",
+        pendingPositionId: "pos_fe",
       }),
     )
 
@@ -52,11 +52,11 @@ describe("link position card", () => {
   })
 
   it("builds clarification card with start button", () => {
-    const card = buildClarificationCard("HRBP")
+    const card = buildClarificationCard("前端工程师")
     const serialized = JSON.stringify(card)
 
-    expect(card.header.title.content).toBe("您有一个新职位【HRBP】待澄清")
-    expect(serialized).toContain("检测到新职位【HRBP】已进入系统")
+    expect(card.header.title.content).toBe("您有一个新职位【前端工程师】待澄清")
+    expect(serialized).toContain("检测到新职位【前端工程师】已进入系统")
     expect(serialized).toContain("开始澄清")
     expect(serialized).toContain(START_CLARIFICATION_ACTION)
   })
