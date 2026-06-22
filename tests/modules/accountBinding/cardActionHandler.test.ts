@@ -100,6 +100,28 @@ describe("accountBinding card action handler", () => {
     const response = await handler(envelope({
       operator: { open_id: "ou_bind" },
       action: {
+        tag: "button",
+        form_value: {
+          Select_m7d0zq95: "1",
+          Select_wonbj1gybhe: "1",
+        },
+        name: "Button_m7t30yjl",
+      },
+    }))
+
+    expect(im.sendTextToUser).toHaveBeenCalledWith("ou_bind", "绑定成功")
+    expect(response).toEqual({
+      toast: { type: "success", content: "绑定成功" },
+    })
+  })
+
+  it("logs submit result for card_submit_data payload", async () => {
+    const im = fakeIm()
+    const handler = makeAccountBindingCardActionHandler(im)
+
+    const response = await handler(envelope({
+      operator: { open_id: "ou_bind" },
+      action: {
         value: {
           card_submit_data: {
             channel: ["渠道编码1", "渠道编码2"],

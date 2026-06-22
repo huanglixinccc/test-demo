@@ -62,6 +62,25 @@ describe("parseCardSubmitPayload", () => {
 })
 
 describe("parseCardSubmitFromAction", () => {
+  it("parses real Feishu template form submit payload", () => {
+    expect(
+      parseCardSubmitFromAction({
+        tag: "button",
+        timezone: "Asia/Shanghai",
+        form_value: {
+          Select_m7d0zq95: "1",
+          Select_wonbj1gybhe: "1",
+        },
+        name: "Button_m7t30yjl",
+      }),
+    ).toEqual({
+      card_submit_data: {
+        channel: ["1"],
+        account: ["1"],
+      },
+    })
+  })
+
   it("finds submit data nested in action.form_value", () => {
     expect(
       parseCardSubmitFromAction({

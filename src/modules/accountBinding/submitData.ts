@@ -1,3 +1,9 @@
+import {
+  BINDING_FORM_ACCOUNT_FIELD,
+  BINDING_FORM_CHANNEL_FIELD,
+  BINDING_SUBMIT_BUTTON_NAME,
+} from "./constants.js"
+
 export interface CardSubmitData {
   channel: string[]
   account: string[]
@@ -37,6 +43,23 @@ function fromRecord(record: Record<string, unknown>): CardSubmitPayload | null {
   return null
 }
 
+/** 解析模板卡片 form_value 中的 Select 组件值 */
+export function parseBindingTemplateFormSubmit(formValue: unknown): CardSubmitPayload | null {
+  if (!formValue || typeof formValue !== "object") return null
+  const fields = formValue as Record<string, unknown>
+
+  const hasChannel = BINDING_FORM_CHANNEL_FIELD in fields
+  const hasAccount = BINDING_FORM_ACCOUNT_FIELD in fields
+  if (!hasChannel && !hasAccount) return null
+
+  return {
+    card_submit_data: {
+      channel: normalizeStringArray(fields[BINDING_FORM_CHANNEL_FIELD]),
+      account: normalizeStringArray(fields[BINDING_FORM_ACCOUNT_FIELD]),
+    },
+  }
+}
+
 export function parseCardSubmitPayload(raw: unknown): CardSubmitPayload | null {
   if (raw == null) return null
 
@@ -67,8 +90,15 @@ function findNestedSubmitPayload(raw: unknown, depth = 0): CardSubmitPayload | n
 export function parseCardSubmitFromAction(action: unknown): CardSubmitPayload | null {
   if (!action || typeof action !== "object") return null
   const record = action as Record<string, unknown>
+
+  if (record.tag === "button" && record.form_value) {
+    const fromForm = parseBindingTemplateFormSubmit(record.form_value)
+    if (fromForm) return fromForm
+  }
+
   return (
     findNestedSubmitPayload(record.value) ??
+    parseBindingTemplateFormSubmit(record.form_value) ??
     findNestedSubmitPayload(record.form_value) ??
     findNestedSubmitPayload(action)
   )
