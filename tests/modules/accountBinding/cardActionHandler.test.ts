@@ -92,4 +92,26 @@ describe("accountBinding card action handler", () => {
       },
     })
   })
+
+  it("logs submit result and notifies user on template card submit", async () => {
+    const im = fakeIm()
+    const handler = makeAccountBindingCardActionHandler(im)
+
+    const response = await handler(envelope({
+      operator: { open_id: "ou_bind" },
+      action: {
+        value: {
+          card_submit_data: {
+            channel: ["渠道编码1", "渠道编码2"],
+            account: ["账号1", "账号2"],
+          },
+        },
+      },
+    }))
+
+    expect(im.sendTextToUser).toHaveBeenCalledWith("ou_bind", "绑定成功")
+    expect(response).toEqual({
+      toast: { type: "success", content: "绑定成功" },
+    })
+  })
 })

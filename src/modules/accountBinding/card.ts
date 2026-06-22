@@ -51,3 +51,14 @@ export function buildSelectTemplateCardResponse() {
     },
   }
 }
+
+export function buildBindingSuccessResponse() {
+  return {
+    toast: {
+      type: "success",
+      content: "绑定成功",
+    },
+  }
+}
+
+export const BINDING_SUCCESS_MESSAGE = "绑定成功"

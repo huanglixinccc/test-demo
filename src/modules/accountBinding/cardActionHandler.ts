@@ -4,37 +4,71 @@ import type { FeishuIM } from "../../feishu/im.js"
 import { logger } from "../../utils/logger.js"
 import { START_BINDING_ACTION } from "./constants.js"
 import {
+  BINDING_SUCCESS_MESSAGE,
+  buildBindingSuccessResponse,
   buildSelectTemplateCardPayload,
   buildSelectTemplateCardResponse,
 } from "./card.js"
+import { parseCardSubmitPayload } from "./submitData.js"
 
 interface CardActionEvent {
   operator?: { open_id?: string }
   action?: {
-    value?: string | { action?: string }
+    value?: unknown
+    form_value?: unknown
   }
 }
 
-function readAction(action: CardActionEvent["action"]): string | undefined {
-  const raw = action?.value
-  if (typeof raw === "string") {
+function readStartAction(value: unknown): string | undefined {
+  if (typeof value === "string") {
     try {
-      const parsed = JSON.parse(raw) as { action?: string }
+      const parsed = JSON.parse(value) as { action?: string }
       if (typeof parsed.action === "string") return parsed.action
     } catch {
-      return raw
+      return value
     }
-    return raw
+    return value
   }
-  if (raw && typeof raw === "object") return raw.action
+  if (value && typeof value === "object" && "action" in value) {
+    const action = (value as { action?: unknown }).action
+    return typeof action === "string" ? action : undefined
+  }
   return undefined
+}
+
+async function handleSubmit(
+  im: FeishuIM,
+  operatorOpenId: string | undefined,
+  submitPayload: ReturnType<typeof parseCardSubmitPayload>,
+): Promise<Record<string, unknown>> {
+  logger.info(
+    { openId: operatorOpenId, result: submitPayload },
+    "accountBinding.submit.received",
+  )
+
+  if (operatorOpenId) {
+    try {
+      await im.sendTextToUser(operatorOpenId, BINDING_SUCCESS_MESSAGE)
+    } catch (err) {
+      logger.error({ err, openId: operatorOpenId }, "accountBinding.submit.notify_failed")
+    }
+  }
+
+  return buildBindingSuccessResponse()
 }
 
 export function makeAccountBindingCardActionHandler(im: FeishuIM): CardActionHandler {
   return async function handle(envelope: DecryptedEnvelope) {
     const ev = envelope.event as CardActionEvent
-    const action = readAction(ev.action)
     const operatorOpenId = ev.operator?.open_id
+    const submitPayload =
+      parseCardSubmitPayload(ev.action?.value) ?? parseCardSubmitPayload(ev.action?.form_value)
+
+    if (submitPayload) {
+      return handleSubmit(im, operatorOpenId, submitPayload)
+    }
+
+    const action = readStartAction(ev.action?.value)
 
     logger.info(
       { openId: operatorOpenId, action, rawValue: ev.action?.value },
