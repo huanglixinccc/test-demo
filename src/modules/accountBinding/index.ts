@@ -14,9 +14,12 @@ export { buildBindingCard, buildSelectTemplateCardResponse } from "./card.js"
 
 export function registerAccountBinding(deps: {
   im: FeishuIM
+  afterBindingSuccess?: (openId: string) => Promise<void>
 }): { cardActionHandler: CardActionHandler; menuHandler: ReturnType<typeof makeAccountBindingMenuHandler> } {
   return {
-    cardActionHandler: makeAccountBindingCardActionHandler(deps.im),
+    cardActionHandler: makeAccountBindingCardActionHandler(deps.im, {
+      afterBindingSuccess: deps.afterBindingSuccess,
+    }),
     menuHandler: makeAccountBindingMenuHandler(deps.im),
   }
 }

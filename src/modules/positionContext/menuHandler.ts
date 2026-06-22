@@ -2,9 +2,7 @@ import type { DecryptedEnvelope } from "../../webhook/verify.js"
 import type { FeishuIM } from "../../feishu/im.js"
 import { logger } from "../../utils/logger.js"
 import { SELECT_POSITIONS_EVENT_KEY } from "./constants.js"
-import { buildPositionSelectCard } from "./card.js"
-import { MOCK_POSITIONS } from "./mockPositions.js"
-import { positionContextStore } from "./store.js"
+import { sendPositionSelectCard } from "./sendPositionSelectCard.js"
 
 interface BotMenuEvent {
   event_key: string
@@ -31,7 +29,6 @@ export function makePositionSelectMenuHandler(im: FeishuIM) {
       "positionContext.menu.received",
     )
 
-    const currentId = positionContextStore.getCurrentPositionId(operatorOpenId)
-    await im.sendCardToUser(operatorOpenId, buildPositionSelectCard(MOCK_POSITIONS, currentId))
+    await sendPositionSelectCard(im, operatorOpenId)
   }
 }

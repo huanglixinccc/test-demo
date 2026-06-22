@@ -79,4 +79,16 @@ describe("accountBinding menu handler", () => {
 
     expect(im.sendCardToUser).not.toHaveBeenCalled()
   })
+
+  it("ignores select_positions without logging as received", async () => {
+    const im = fakeIm()
+    const handler = makeAccountBindingMenuHandler(im)
+
+    await handler(envelope({
+      event_key: "select_positions",
+      operator: { operator_id: { open_id: "ou_x" } },
+    }))
+
+    expect(im.sendCardToUser).not.toHaveBeenCalled()
+  })
 })

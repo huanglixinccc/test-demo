@@ -1,4 +1,5 @@
 import express from "express"
+import { logger } from "./utils/logger.js"
 
 export interface AppDeps {
   encryptKey: string
@@ -25,7 +26,9 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { makeBotMessageHandler } = await import("./feishu/events/botMessage.js")
   const { makeBitableChangeHandler } = await import("./feishu/events/bitableChange.js")
   const { registerAccountBinding } = await import("./modules/accountBinding/index.js")
-  const { registerPositionContext } = await import("./modules/positionContext/index.js")
+  const { registerPositionContext, sendPositionSelectCard } = await import(
+    "./modules/positionContext/index.js"
+  )
   const { composeMenuHandlers } = await import("./feishu/events/botMenu.js")
   const { MENU_EVENT_TYPE } = await import("./modules/accountBinding/constants.js")
   const { registerResumeAgent } = await import("./agents/resume/index.js")
@@ -54,7 +57,10 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   registerJdMatchAgent({ ai, bitable })
 
   const { cardActionHandler: accountBindingCardAction, menuHandler: accountBindingMenu } =
-    registerAccountBinding({ im })
+    registerAccountBinding({
+      im,
+      afterBindingSuccess: (openId) => sendPositionSelectCard(im, openId),
+    })
   const { cardActionHandler: positionCardAction, menuHandler: positionMenu } =
     registerPositionContext({ im })
 
@@ -62,6 +68,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
     MENU_EVENT_TYPE,
     composeMenuHandlers(accountBindingMenu, positionMenu),
   )
+  logger.info({ modules: ["accountBinding", "positionContext"] }, "botMenu.handlers.registered")
 
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
   dispatcher.register(

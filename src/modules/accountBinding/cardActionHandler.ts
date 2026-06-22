@@ -42,6 +42,7 @@ async function handleSubmit(
   im: FeishuIM,
   operatorOpenId: string | undefined,
   submitPayload: NonNullable<ReturnType<typeof parseCardSubmitFromEvent>>,
+  afterBindingSuccess?: (openId: string) => Promise<void>,
 ): Promise<Record<string, unknown>> {
   logger.info(
     { openId: operatorOpenId, result: submitPayload },
@@ -54,12 +55,24 @@ async function handleSubmit(
     } catch (err) {
       logger.error({ err, openId: operatorOpenId }, "accountBinding.submit.notify_failed")
     }
+
+    if (afterBindingSuccess) {
+      try {
+        await afterBindingSuccess(operatorOpenId)
+        logger.info({ openId: operatorOpenId }, "accountBinding.submit.position_select_triggered")
+      } catch (err) {
+        logger.error({ err, openId: operatorOpenId }, "accountBinding.submit.position_select_failed")
+      }
+    }
   }
 
   return buildBindingSuccessResponse()
 }
 
-export function makeAccountBindingCardActionHandler(im: FeishuIM): CardActionHandler {
+export function makeAccountBindingCardActionHandler(
+  im: FeishuIM,
+  options?: { afterBindingSuccess?: (openId: string) => Promise<void> },
+): CardActionHandler {
   return async function handle(envelope: DecryptedEnvelope) {
     const ev = envelope.event as CardActionEvent
     const operatorOpenId = ev.operator?.open_id
@@ -73,7 +86,7 @@ export function makeAccountBindingCardActionHandler(im: FeishuIM): CardActionHan
       parseCardSubmitFromAction(ev.action) ?? parseCardSubmitFromEvent(ev)
 
     if (submitPayload) {
-      return handleSubmit(im, operatorOpenId, submitPayload)
+      return handleSubmit(im, operatorOpenId, submitPayload, options?.afterBindingSuccess)
     }
 
     const action = readStartAction(ev.action?.value)

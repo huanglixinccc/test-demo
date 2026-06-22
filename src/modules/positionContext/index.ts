@@ -12,6 +12,7 @@ export type { WorkspacePosition } from "./types.js"
 export { MOCK_POSITIONS, findMockPosition } from "./mockPositions.js"
 export { positionContextStore, PositionContextStore } from "./store.js"
 export { buildPositionSelectCard } from "./card.js"
+export { sendPositionSelectCard } from "./sendPositionSelectCard.js"
 
 export function registerPositionContext(deps: {
   im: FeishuIM

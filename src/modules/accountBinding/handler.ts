@@ -24,15 +24,12 @@ export function makeAccountBindingMenuHandler(im: FeishuIM) {
       return
     }
 
+    if (eventKey !== BIND_ACCOUNT_EVENT_KEY) return
+
     logger.info(
       { openId: operatorOpenId, eventKey, operatorName: ev.operator?.operator_name },
       "accountBinding.menu.received",
     )
-
-    if (eventKey !== BIND_ACCOUNT_EVENT_KEY) {
-      logger.info({ eventKey }, "accountBinding.menu.ignored")
-      return
-    }
 
     await im.sendCardToUser(operatorOpenId, buildBindingCard())
   }

@@ -115,6 +115,24 @@ describe("accountBinding card action handler", () => {
     })
   })
 
+  it("triggers afterBindingSuccess on submit", async () => {
+    const im = fakeIm()
+    const afterBindingSuccess = vi.fn().mockResolvedValue(undefined)
+    const handler = makeAccountBindingCardActionHandler(im, { afterBindingSuccess })
+
+    await handler(envelope({
+      operator: { open_id: "ou_bind" },
+      action: {
+        form_value: {
+          Select_m7d0zq95: "1",
+          Select_wonbj1gybhe: "1",
+        },
+      },
+    }))
+
+    expect(afterBindingSuccess).toHaveBeenCalledWith("ou_bind")
+  })
+
   it("logs submit result for card_submit_data payload", async () => {
     const im = fakeIm()
     const handler = makeAccountBindingCardActionHandler(im)
