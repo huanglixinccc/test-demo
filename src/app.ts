@@ -50,8 +50,9 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   registerAnalyticsAgent({ ai, bitable, im })
   registerJdMatchAgent({ ai, bitable })
 
+  const { cardActionHandler } = registerAccountBinding({ dispatcher, im })
+
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
-  registerAccountBinding({ dispatcher, im })
   dispatcher.register(
     "drive.file.bitable_record_changed_v1",
     makeBitableChangeHandler({
@@ -85,6 +86,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
       encryptKey: deps.encryptKey,
       verificationToken: deps.verificationToken,
       dispatcher,
+      cardActionHandlers: [cardActionHandler],
     }),
   )
 

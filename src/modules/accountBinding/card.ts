@@ -1,4 +1,7 @@
-import { BINDING_URL } from "./constants.js"
+import {
+  BINDING_SELECT_CARD_TEMPLATE_ID,
+  START_BINDING_ACTION,
+} from "./constants.js"
 
 export function buildBindingCard() {
   return {
@@ -12,12 +15,32 @@ export function buildBindingCard() {
         },
       },
       {
-        tag: "div",
-        text: {
-          tag: "lark_md",
-          content: `[开始绑定](${BINDING_URL})`,
-        },
+        tag: "action",
+        actions: [
+          {
+            tag: "button",
+            text: {
+              tag: "plain_text",
+              content: "开始绑定",
+            },
+            type: "primary",
+            value: {
+              action: START_BINDING_ACTION,
+            },
+          },
+        ],
       },
     ],
+  }
+}
+
+export function buildSelectTemplateCardResponse() {
+  return {
+    card: {
+      type: "template",
+      data: {
+        template_id: BINDING_SELECT_CARD_TEMPLATE_ID,
+      },
+    },
   }
 }

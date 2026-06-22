@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
 import { makeAccountBindingMenuHandler } from "../../../src/modules/accountBinding/handler.js"
-import { BINDING_URL } from "../../../src/modules/accountBinding/constants.js"
+import { START_BINDING_ACTION } from "../../../src/modules/accountBinding/constants.js"
 import type { FeishuIM } from "../../../src/feishu/im.js"
 
 function envelope(event: unknown) {
@@ -45,9 +45,11 @@ describe("accountBinding menu handler", () => {
       expect.objectContaining({
         elements: expect.arrayContaining([
           expect.objectContaining({
-            text: expect.objectContaining({
-              content: `[开始绑定](${BINDING_URL})`,
-            }),
+            actions: [
+              expect.objectContaining({
+                value: { action: START_BINDING_ACTION },
+              }),
+            ],
           }),
         ]),
       }),

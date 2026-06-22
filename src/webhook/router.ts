@@ -1,6 +1,8 @@
 import express, { Router, type Request, type Response } from "express"
 import { processIncoming } from "./verify.js"
 import type { FeishuEventDispatcher } from "./dispatcher.js"
+import { CARD_ACTION_EVENT_TYPE, resolveCardActionResponse } from "./cardAction.js"
+import type { CardActionHandler } from "./cardAction.js"
 import { logger } from "../utils/logger.js"
 
 declare module "express-serve-static-core" {
@@ -13,6 +15,7 @@ export function createWebhookRouter(opts: {
   encryptKey: string
   verificationToken: string
   dispatcher: FeishuEventDispatcher
+  cardActionHandlers?: CardActionHandler[]
 }) {
   const router = Router()
 
@@ -43,6 +46,15 @@ export function createWebhookRouter(opts: {
     if (result.kind === "invalid") {
       logger.warn({ reason: result.reason }, "webhook.invalid")
       res.status(400).json({ ok: false, reason: result.reason })
+      return
+    }
+
+    if (result.envelope.header.event_type === CARD_ACTION_EVENT_TYPE) {
+      const response = await resolveCardActionResponse(
+        opts.cardActionHandlers ?? [],
+        result.envelope,
+      )
+      res.json(response)
       return
     }
 

@@ -33,6 +33,38 @@ describe("webhook router", () => {
     expect(res.body.challenge).toBe("ch")
   })
 
+  it("returns template card for card.action.trigger", async () => {
+    const dispatcher = new FeishuEventDispatcher()
+    const cardActionHandler = vi.fn().mockResolvedValue({
+      card: { type: "template", data: { template_id: "AAqNR3G7hMhTQ" } },
+    })
+    const app = express()
+    app.use("/webhook", createWebhookRouter({
+      encryptKey: "k",
+      verificationToken: "t",
+      dispatcher,
+      cardActionHandlers: [cardActionHandler],
+    }))
+
+    const envelope = {
+      schema: "2.0",
+      header: {
+        event_id: "e_card_1",
+        event_type: "card.action.trigger",
+        create_time: "x",
+        token: "t",
+        app_id: "a",
+        tenant_key: "t",
+      },
+      event: { action: { value: { action: "account_binding_start" } } },
+    }
+    const enc = aesEncrypt(JSON.stringify(envelope), "k")
+    const res = await request(app).post("/webhook/feishu").send({ encrypt: enc })
+    expect(res.status).toBe(200)
+    expect(res.body.card.data.template_id).toBe("AAqNR3G7hMhTQ")
+    expect(cardActionHandler).toHaveBeenCalledTimes(1)
+  })
+
   it("dispatches event and returns ok", async () => {
     const { app, dispatcher } = buildApp()
     const handler = vi.fn()

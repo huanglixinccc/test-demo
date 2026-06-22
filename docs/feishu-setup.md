@@ -26,7 +26,9 @@
 - 事件 Key：`bind_account`（须与代码中一致）
 - 保存并发布应用版本
 
-> 用户点击该菜单后，飞书会推送 `application.bot.menu_v6` 事件，`event_key` 为 `bind_account`，由独立模块 `src/modules/accountBinding/` 处理并回复绑定卡片（链接固定为 `https://hrp.taient.com/dashboard`）。
+> 用户点击该菜单后，飞书会推送 `application.bot.menu_v6` 事件，`event_key` 为 `bind_account`，由独立模块 `src/modules/accountBinding/` 处理并回复引导卡片；用户点击卡片上的「开始绑定」按钮后，服务端通过卡片回调返回模板卡片 `AAqNR3G7hMhTQ`（含渠道选择框）。
+
+> **还需在「事件与回调 → 回调配置」中订阅 `card.action.trigger`（卡片回传交互）**，并将请求地址设为与事件订阅相同的 `https://<你的域名>/webhook/feishu`。同时确保应用对该卡片模板有使用权限。
 
 ### A3. 申请权限（要审批，先申请着）
 
@@ -241,6 +243,8 @@ curl https://<你的域名>/health
   - `接收消息 v1.0`：`im.message.receive_v1`
   - `多维表格记录变更`：`drive.file.bitable_record_changed_v1`
   - `机器人自定义菜单`：`application.bot.menu_v6`
+- **回调配置**（与事件订阅同一 URL）：
+  - `卡片回传交互`：`card.action.trigger`
 - 点「**保存**」 → 飞书会立刻发一个 URL Challenge 给你的 URL，服务里的 `/webhook/feishu` 会自动回应 → 显示「验证通过」
 
 > 如果验证失败：

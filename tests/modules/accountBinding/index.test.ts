@@ -5,13 +5,14 @@ import { MENU_EVENT_TYPE } from "../../../src/modules/accountBinding/constants.j
 import type { FeishuIM } from "../../../src/feishu/im.js"
 
 describe("registerAccountBinding", () => {
-  it("registers application.bot.menu_v6 handler on dispatcher", () => {
+  it("registers menu handler and exposes card action handler", () => {
     const dispatcher = new FeishuEventDispatcher()
     const registerSpy = vi.spyOn(dispatcher, "register")
     const im = {} as FeishuIM
 
-    registerAccountBinding({ dispatcher, im })
+    const { cardActionHandler } = registerAccountBinding({ dispatcher, im })
 
     expect(registerSpy).toHaveBeenCalledWith(MENU_EVENT_TYPE, expect.any(Function))
+    expect(cardActionHandler).toEqual(expect.any(Function))
   })
 })
