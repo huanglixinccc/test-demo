@@ -36,7 +36,7 @@ describe("webhook router", () => {
   it("returns template card for card.action.trigger", async () => {
     const dispatcher = new FeishuEventDispatcher()
     const cardActionHandler = vi.fn().mockResolvedValue({
-      card: { type: "template", data: { template_id: "AAqNR3G7hMhTQ" } },
+      toast: { type: "info", content: "正在打开绑定表单…" },
     })
     const app = express()
     app.use("/webhook", createWebhookRouter({
@@ -61,7 +61,7 @@ describe("webhook router", () => {
     const enc = aesEncrypt(JSON.stringify(envelope), "k")
     const res = await request(app).post("/webhook/feishu").send({ encrypt: enc })
     expect(res.status).toBe(200)
-    expect(res.body.card.data.template_id).toBe("AAqNR3G7hMhTQ")
+    expect(res.body.toast.content).toBe("正在打开绑定表单…")
     expect(cardActionHandler).toHaveBeenCalledTimes(1)
   })
 

@@ -19,5 +19,5 @@ export function registerAccountBinding(deps: {
   im: FeishuIM
 }): { cardActionHandler: CardActionHandler } {
   deps.dispatcher.register(MENU_EVENT_TYPE, makeAccountBindingMenuHandler(deps.im))
-  return { cardActionHandler: makeAccountBindingCardActionHandler() }
+  return { cardActionHandler: makeAccountBindingCardActionHandler(deps.im) }
 }

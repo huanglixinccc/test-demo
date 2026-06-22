@@ -50,11 +50,20 @@ export function createWebhookRouter(opts: {
     }
 
     if (result.envelope.header.event_type === CARD_ACTION_EVENT_TYPE) {
-      const response = await resolveCardActionResponse(
-        opts.cardActionHandlers ?? [],
-        result.envelope,
-      )
-      res.json(response)
+      try {
+        const response = await resolveCardActionResponse(
+          opts.cardActionHandlers ?? [],
+          result.envelope,
+        )
+        logger.info(
+          { eventId: result.envelope.header.event_id, hasToast: Boolean(response.toast) },
+          "webhook.cardAction.responded",
+        )
+        res.json(response)
+      } catch (err) {
+        logger.error({ err, eventId: result.envelope.header.event_id }, "webhook.cardAction.error")
+        res.json({ toast: { type: "error", content: "服务处理失败，请稍后重试" } })
+      }
       return
     }
 

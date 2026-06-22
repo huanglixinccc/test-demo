@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import { makeAccountBindingCardActionHandler } from "../../../src/modules/accountBinding/cardActionHandler.js"
 import { START_BINDING_ACTION } from "../../../src/modules/accountBinding/constants.js"
+import type { FeishuIM } from "../../../src/feishu/im.js"
 
 function envelope(event: unknown) {
   return {
@@ -17,9 +18,18 @@ function envelope(event: unknown) {
   }
 }
 
+function fakeIm(): FeishuIM {
+  return {
+    sendTextToUser: vi.fn().mockResolvedValue(undefined),
+    sendCardToUser: vi.fn().mockResolvedValue(undefined),
+    downloadMessageFile: vi.fn(),
+  } as unknown as FeishuIM
+}
+
 describe("accountBinding card action handler", () => {
-  it("returns select template card response on start binding action", async () => {
-    const handler = makeAccountBindingCardActionHandler()
+  it("sends template card and returns toast on start binding action", async () => {
+    const im = fakeIm()
+    const handler = makeAccountBindingCardActionHandler(im)
 
     const response = await handler(envelope({
       operator: { open_id: "ou_bind" },
@@ -29,18 +39,32 @@ describe("accountBinding card action handler", () => {
       },
     }))
 
+    expect(im.sendCardToUser).toHaveBeenCalledWith("ou_bind", {
+      type: "template",
+      data: { template_id: "AAqNR3G7hMhTQ" },
+    })
     expect(response).toEqual({
-      card: {
-        type: "template",
-        data: {
-          template_id: "AAqNR3G7hMhTQ",
-        },
-      },
+      toast: { type: "info", content: "正在打开绑定表单…" },
     })
   })
 
+  it("parses stringified action value", async () => {
+    const im = fakeIm()
+    const handler = makeAccountBindingCardActionHandler(im)
+
+    await handler(envelope({
+      operator: { open_id: "ou_bind" },
+      action: {
+        value: JSON.stringify({ action: START_BINDING_ACTION }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalled()
+  })
+
   it("returns null for unrelated card actions", async () => {
-    const handler = makeAccountBindingCardActionHandler()
+    const im = fakeIm()
+    const handler = makeAccountBindingCardActionHandler(im)
 
     const response = await handler(envelope({
       operator: { open_id: "ou_bind" },
@@ -48,5 +72,24 @@ describe("accountBinding card action handler", () => {
     }))
 
     expect(response).toBeNull()
+    expect(im.sendCardToUser).not.toHaveBeenCalled()
+  })
+
+  it("returns error toast when template send fails", async () => {
+    const im = fakeIm()
+    vi.mocked(im.sendCardToUser).mockRejectedValue(new Error("200381"))
+    const handler = makeAccountBindingCardActionHandler(im)
+
+    const response = await handler(envelope({
+      operator: { open_id: "ou_bind" },
+      action: { value: { action: START_BINDING_ACTION } },
+    }))
+
+    expect(response).toEqual({
+      toast: {
+        type: "error",
+        content: "打开绑定表单失败，请确认应用已授权该卡片模板",
+      },
+    })
   })
 })

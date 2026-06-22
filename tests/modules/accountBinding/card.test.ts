@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { buildBindingCard, buildSelectTemplateCardResponse } from "../../../src/modules/accountBinding/card.js"
+import { buildBindingCard, buildSelectTemplateCardPayload, buildSelectTemplateCardResponse } from "../../../src/modules/accountBinding/card.js"
 import {
   BINDING_SELECT_CARD_TEMPLATE_ID,
   START_BINDING_ACTION,
@@ -21,16 +21,17 @@ describe("accountBinding card", () => {
     })
   })
 
-  it("buildSelectTemplateCardResponse uses hardcoded template id", () => {
-    const response = buildSelectTemplateCardResponse()
-    expect(response).toEqual({
-      card: {
-        type: "template",
-        data: {
-          template_id: BINDING_SELECT_CARD_TEMPLATE_ID,
-        },
-      },
+  it("buildSelectTemplateCardPayload uses hardcoded template id", () => {
+    expect(buildSelectTemplateCardPayload()).toEqual({
+      type: "template",
+      data: { template_id: BINDING_SELECT_CARD_TEMPLATE_ID },
     })
     expect(BINDING_SELECT_CARD_TEMPLATE_ID).toBe("AAqNR3G7hMhTQ")
+  })
+
+  it("buildSelectTemplateCardResponse returns toast", () => {
+    expect(buildSelectTemplateCardResponse()).toEqual({
+      toast: { type: "info", content: "正在打开绑定表单…" },
+    })
   })
 })

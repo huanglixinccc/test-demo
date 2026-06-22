@@ -34,13 +34,20 @@ export function buildBindingCard() {
   }
 }
 
+export function buildSelectTemplateCardPayload() {
+  return {
+    type: "template",
+    data: {
+      template_id: BINDING_SELECT_CARD_TEMPLATE_ID,
+    },
+  }
+}
+
 export function buildSelectTemplateCardResponse() {
   return {
-    card: {
-      type: "template",
-      data: {
-        template_id: BINDING_SELECT_CARD_TEMPLATE_ID,
-      },
+    toast: {
+      type: "info",
+      content: "正在打开绑定表单…",
     },
   }
 }
