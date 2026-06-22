@@ -78,7 +78,6 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
     makeBotMessageHandler(im, {
       onBindAccountAndSyncPositions: async (openId) => {
         await im.sendCardToUser(openId, buildBindingCard())
-        await sendPositionSelectCard(im, openId)
       },
     }),
   )

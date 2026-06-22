@@ -4,7 +4,7 @@ export const CARD_ACTION_EVENT_TYPE = "card.action.trigger"
 
 export const BIND_ACCOUNT_EVENT_KEY = "bind_account"
 
-/** 私聊发送该文案时触发绑定账号 + 同步职位列表 */
+/** 私聊发送该文案时触发账号绑定卡片 */
 export const BIND_ACCOUNT_AND_SYNC_POSITIONS_TEXT = "绑定账号并同步职位列表"
 
 export const START_BINDING_ACTION = "account_binding_start"
