@@ -9,13 +9,15 @@ import {
   buildSelectTemplateCardPayload,
   buildSelectTemplateCardResponse,
 } from "./card.js"
-import { parseCardSubmitPayload } from "./submitData.js"
+import { parseCardSubmitFromAction, parseCardSubmitFromEvent } from "./submitData.js"
 
 interface CardActionEvent {
   operator?: { open_id?: string }
   action?: {
     value?: unknown
     form_value?: unknown
+    tag?: string
+    name?: string
   }
 }
 
@@ -39,7 +41,7 @@ function readStartAction(value: unknown): string | undefined {
 async function handleSubmit(
   im: FeishuIM,
   operatorOpenId: string | undefined,
-  submitPayload: ReturnType<typeof parseCardSubmitPayload>,
+  submitPayload: NonNullable<ReturnType<typeof parseCardSubmitFromEvent>>,
 ): Promise<Record<string, unknown>> {
   logger.info(
     { openId: operatorOpenId, result: submitPayload },
@@ -61,8 +63,14 @@ export function makeAccountBindingCardActionHandler(im: FeishuIM): CardActionHan
   return async function handle(envelope: DecryptedEnvelope) {
     const ev = envelope.event as CardActionEvent
     const operatorOpenId = ev.operator?.open_id
+
+    logger.info(
+      { openId: operatorOpenId, action: ev.action },
+      "accountBinding.cardAction.raw",
+    )
+
     const submitPayload =
-      parseCardSubmitPayload(ev.action?.value) ?? parseCardSubmitPayload(ev.action?.form_value)
+      parseCardSubmitFromAction(ev.action) ?? parseCardSubmitFromEvent(ev)
 
     if (submitPayload) {
       return handleSubmit(im, operatorOpenId, submitPayload)
@@ -71,11 +79,17 @@ export function makeAccountBindingCardActionHandler(im: FeishuIM): CardActionHan
     const action = readStartAction(ev.action?.value)
 
     logger.info(
-      { openId: operatorOpenId, action, rawValue: ev.action?.value },
+      { openId: operatorOpenId, action, rawValue: ev.action?.value, tag: ev.action?.tag },
       "accountBinding.cardAction.received",
     )
 
-    if (action !== START_BINDING_ACTION) return null
+    if (action !== START_BINDING_ACTION) {
+      logger.info(
+        { openId: operatorOpenId, tag: ev.action?.tag, name: ev.action?.name },
+        "accountBinding.cardAction.ignored",
+      )
+      return null
+    }
     if (!operatorOpenId) {
       logger.warn({ action }, "accountBinding.cardAction.missing_open_id")
       return { toast: { type: "error", content: "无法识别操作人，请重试" } }
