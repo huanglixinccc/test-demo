@@ -25,6 +25,9 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { makeBotMessageHandler } = await import("./feishu/events/botMessage.js")
   const { makeBitableChangeHandler } = await import("./feishu/events/bitableChange.js")
   const { registerAccountBinding } = await import("./modules/accountBinding/index.js")
+  const { registerPositionContext } = await import("./modules/positionContext/index.js")
+  const { composeMenuHandlers } = await import("./feishu/events/botMenu.js")
+  const { MENU_EVENT_TYPE } = await import("./modules/accountBinding/constants.js")
   const { registerResumeAgent } = await import("./agents/resume/index.js")
   const { registerInterviewAgent } = await import("./agents/interview/index.js")
   const { registerReferralAgent } = await import("./agents/referral/index.js")
@@ -50,7 +53,15 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   registerAnalyticsAgent({ ai, bitable, im })
   registerJdMatchAgent({ ai, bitable })
 
-  const { cardActionHandler } = registerAccountBinding({ dispatcher, im })
+  const { cardActionHandler: accountBindingCardAction, menuHandler: accountBindingMenu } =
+    registerAccountBinding({ im })
+  const { cardActionHandler: positionCardAction, menuHandler: positionMenu } =
+    registerPositionContext({ im })
+
+  dispatcher.register(
+    MENU_EVENT_TYPE,
+    composeMenuHandlers(accountBindingMenu, positionMenu),
+  )
 
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
   dispatcher.register(
@@ -86,7 +97,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
       encryptKey: deps.encryptKey,
       verificationToken: deps.verificationToken,
       dispatcher,
-      cardActionHandlers: [cardActionHandler],
+      cardActionHandlers: [accountBindingCardAction, positionCardAction],
     }),
   )
 

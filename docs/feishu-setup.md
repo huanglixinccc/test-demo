@@ -28,7 +28,13 @@
 
 > 用户点击该菜单后，飞书会推送 `application.bot.menu_v6` 事件，`event_key` 为 `bind_account`，由独立模块 `src/modules/accountBinding/` 处理并回复引导卡片；用户点击卡片上的「开始绑定」按钮后，服务端通过卡片回调返回模板卡片 `AAqNR3G7hMhTQ`（含渠道选择框）。
 
-> **还需在「事件与回调 → 回调配置」中订阅 `card.action.trigger`（卡片回传交互）**，并将请求地址设为与事件订阅相同的 `https://<你的域名>/webhook/feishu`。同时确保应用对该卡片模板有使用权限。
+#### A2.2 配置「选择职位」菜单（可选）
+
+- 菜单名称：例如「选择职位」
+- 响应动作：**推送事件**
+- 事件 Key：`select_positions`
+
+> 由独立模块 `src/modules/positionContext/` 处理，发送职位列表卡片；用户点击「选择」后记录当前工作区职位（持久化至 `data/position-context.json`）。
 
 ### A3. 申请权限（要审批，先申请着）
 
