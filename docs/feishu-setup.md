@@ -16,6 +16,18 @@
 
 应用详情 → 「应用能力」 → 添加「机器人」
 
+#### A2.1 配置「绑定账号」菜单（可选）
+
+应用详情 → 「应用能力」 → 「机器人」→ 「机器人自定义菜单」→ 编辑：
+
+- 菜单状态：**开启**
+- 新增菜单项，例如名称「绑定账号」
+- 响应动作：**推送事件**
+- 事件 Key：`bind_account`（须与代码中一致）
+- 保存并发布应用版本
+
+> 用户点击该菜单后，飞书会推送 `application.bot.menu_v6` 事件，`event_key` 为 `bind_account`，由独立模块 `src/modules/accountBinding/` 处理并回复绑定卡片（链接固定为 `https://hrp.taient.com/dashboard`）。
+
 ### A3. 申请权限（要审批，先申请着）
 
 应用详情 → 「权限管理」 → 申请：
@@ -228,6 +240,7 @@ curl https://<你的域名>/health
 - 添加事件订阅：
   - `接收消息 v1.0`：`im.message.receive_v1`
   - `多维表格记录变更`：`drive.file.bitable_record_changed_v1`
+  - `机器人自定义菜单`：`application.bot.menu_v6`
 - 点「**保存**」 → 飞书会立刻发一个 URL Challenge 给你的 URL，服务里的 `/webhook/feishu` 会自动回应 → 显示「验证通过」
 
 > 如果验证失败：

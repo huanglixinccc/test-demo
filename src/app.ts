@@ -24,6 +24,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { FeishuEventDispatcher } = await import("./webhook/dispatcher.js")
   const { makeBotMessageHandler } = await import("./feishu/events/botMessage.js")
   const { makeBitableChangeHandler } = await import("./feishu/events/bitableChange.js")
+  const { registerAccountBinding } = await import("./modules/accountBinding/index.js")
   const { registerResumeAgent } = await import("./agents/resume/index.js")
   const { registerInterviewAgent } = await import("./agents/interview/index.js")
   const { registerReferralAgent } = await import("./agents/referral/index.js")
@@ -50,6 +51,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   registerJdMatchAgent({ ai, bitable })
 
   dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
+  registerAccountBinding({ dispatcher, im })
   dispatcher.register(
     "drive.file.bitable_record_changed_v1",
     makeBitableChangeHandler({
