@@ -8,4 +8,5 @@ export const LINK_POSITION_SELECT_ACTION = "link_position_select"
 
 export const LINK_POSITION_CONFIRM_ACTION = "link_position_confirm"
 
-export const START_CLARIFICATION_ACTION = "start_clarification"
+export const CLARIFICATION_H5_URL =
+  "https://www.taient.com/common/job-clarification-voice-h5.html"

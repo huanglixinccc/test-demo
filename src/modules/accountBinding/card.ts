@@ -1,4 +1,5 @@
 import {
+  BINDING_CHANNEL_OPEN_URL,
   BINDING_SELECT_CARD_TEMPLATE_ID,
   START_BINDING_ACTION,
 } from "./constants.js"
@@ -58,6 +59,7 @@ export function buildBindingSuccessResponse() {
       type: "success",
       content: "绑定成功",
     },
+    open_url: BINDING_CHANNEL_OPEN_URL,
   }
 }
 

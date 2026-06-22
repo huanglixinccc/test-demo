@@ -4,9 +4,9 @@ import {
   buildLinkPositionCard,
 } from "../../../src/modules/positionContext/linkPositionCard.js"
 import {
+  CLARIFICATION_H5_URL,
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
-  START_CLARIFICATION_ACTION,
 } from "../../../src/modules/positionContext/constants.js"
 import { MOCK_RECRUITMENT_PLATFORMS } from "../../../src/modules/positionContext/mockPlatforms.js"
 
@@ -19,7 +19,6 @@ describe("link position card", () => {
     expect(serialized).toContain("请为【后端工程师】关联各平台职位")
     expect(serialized).toContain("boss 直聘")
     expect(serialized).toContain("请选择职位")
-    expect(serialized).toContain("请选择需要关联的平台")
     expect(serialized).not.toContain("platformLinked")
     expect(serialized).not.toContain("已关联")
   })
@@ -35,13 +34,14 @@ describe("link position card", () => {
     expect(serialized).toContain(MOCK_RECRUITMENT_PLATFORMS[0].id)
   })
 
-  it("builds clarification card with start button", () => {
+  it("builds clarification card with h5 link button", () => {
     const card = buildClarificationCard("前端工程师")
     const serialized = JSON.stringify(card)
 
     expect(card.header.title.content).toBe("您有一个新职位【前端工程师】待澄清")
     expect(serialized).toContain("检测到新职位【前端工程师】已进入系统")
     expect(serialized).toContain("开始澄清")
-    expect(serialized).toContain(START_CLARIFICATION_ACTION)
+    expect(serialized).toContain(CLARIFICATION_H5_URL)
+    expect(serialized).not.toContain("start_clarification")
   })
 })

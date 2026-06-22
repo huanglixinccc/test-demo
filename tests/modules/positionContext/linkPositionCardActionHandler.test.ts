@@ -3,7 +3,6 @@ import { makeLinkPositionCardActionHandler } from "../../../src/modules/position
 import {
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
-  START_CLARIFICATION_ACTION,
 } from "../../../src/modules/positionContext/constants.js"
 import type { FeishuIM } from "../../../src/feishu/im.js"
 
@@ -53,7 +52,7 @@ describe("link position card action handler", () => {
     }))
 
     expect(im.sendCardToUser).not.toHaveBeenCalled()
-    expect(response).toEqual({ toast: { type: "info", content: "已选择（演示）" } })
+    expect(response).toEqual({ toast: { type: "info", content: "已选择" } })
   })
 
   it("sends clarification card on confirm", async () => {
@@ -85,20 +84,4 @@ describe("link position card action handler", () => {
     })
   })
 
-  it("returns info toast for start clarification button", async () => {
-    const im = fakeIm()
-    const handler = makeLinkPositionCardActionHandler(im)
-
-    const response = await handler(envelope({
-      operator: { open_id: "ou_hr" },
-      action: {
-        tag: "button",
-        value: { action: START_CLARIFICATION_ACTION },
-      },
-    }))
-
-    expect(response).toEqual({
-      toast: { type: "info", content: "即将开始职位澄清" },
-    })
-  })
 })

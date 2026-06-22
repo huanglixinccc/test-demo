@@ -5,7 +5,6 @@ import { logger } from "../../utils/logger.js"
 import {
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
-  START_CLARIFICATION_ACTION,
 } from "./constants.js"
 import { buildClarificationCard } from "./linkPositionCard.js"
 
@@ -58,12 +57,6 @@ export function makeLinkPositionCardActionHandler(im: FeishuIM): CardActionHandl
     const operatorOpenId = ev.operator?.open_id
     const parsed = readAction(ev)
 
-    if (parsed?.action === START_CLARIFICATION_ACTION) {
-      return {
-        toast: { type: "info", content: "即将开始职位澄清" },
-      }
-    }
-
     if (parsed?.action === LINK_POSITION_SELECT_ACTION) {
       logger.info(
         {
@@ -74,7 +67,7 @@ export function makeLinkPositionCardActionHandler(im: FeishuIM): CardActionHandl
         },
         "positionContext.link_position.demo_select",
       )
-      return { toast: { type: "info", content: "已选择（演示）" } }
+      return { toast: { type: "info", content: "已选择" } }
     }
 
     if (parsed?.action === LINK_POSITION_CONFIRM_ACTION) {

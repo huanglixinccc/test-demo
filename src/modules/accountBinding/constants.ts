@@ -15,3 +15,6 @@ export const BINDING_SELECT_CARD_TEMPLATE_ID = "AAqNR3G7hMhTQ"
 export const BINDING_FORM_CHANNEL_FIELD = "Select_m7d0zq95"
 export const BINDING_FORM_ACCOUNT_FIELD = "Select_wonbj1gybhe"
 export const BINDING_SUBMIT_BUTTON_NAME = "Button_m7t30yjl"
+
+/** 绑定渠道账号提交成功后自动打开的页面 */
+export const BINDING_CHANNEL_OPEN_URL = "https://rj01h11p8902.taient.com/"

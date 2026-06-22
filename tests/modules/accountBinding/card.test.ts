@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
-import { buildBindingCard, buildSelectTemplateCardPayload, buildSelectTemplateCardResponse } from "../../../src/modules/accountBinding/card.js"
+import { buildBindingCard, buildBindingSuccessResponse, buildSelectTemplateCardPayload, buildSelectTemplateCardResponse } from "../../../src/modules/accountBinding/card.js"
 import {
+  BINDING_CHANNEL_OPEN_URL,
   BINDING_SELECT_CARD_TEMPLATE_ID,
   START_BINDING_ACTION,
 } from "../../../src/modules/accountBinding/constants.js"
@@ -32,6 +33,13 @@ describe("accountBinding card", () => {
   it("buildSelectTemplateCardResponse returns toast", () => {
     expect(buildSelectTemplateCardResponse()).toEqual({
       toast: { type: "info", content: "正在打开绑定表单…" },
+    })
+  })
+
+  it("buildBindingSuccessResponse returns toast and open_url", () => {
+    expect(buildBindingSuccessResponse()).toEqual({
+      toast: { type: "success", content: "绑定成功" },
+      open_url: BINDING_CHANNEL_OPEN_URL,
     })
   })
 })

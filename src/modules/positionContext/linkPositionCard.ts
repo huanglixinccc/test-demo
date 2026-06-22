@@ -1,7 +1,7 @@
 import {
+  CLARIFICATION_H5_URL,
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
-  START_CLARIFICATION_ACTION,
 } from "./constants.js"
 import { MOCK_POSITIONS } from "./mockPositions.js"
 import { MOCK_RECRUITMENT_PLATFORMS } from "./mockPlatforms.js"
@@ -16,41 +16,6 @@ function buildPositionSelectOptions() {
     text: { tag: "plain_text", content: position.name },
     value: position.id,
   }))
-}
-
-function buildPlatformLinkCheckboxTable() {
-  return [
-    {
-      tag: "div",
-      text: {
-        tag: "lark_md",
-        content: [
-          "| 平台 | 说明 |",
-          "| --- | --- |",
-          ...MOCK_RECRUITMENT_PLATFORMS.map(
-            (platform) => `| ☐ ${platform.name} | 勾选后关联该平台的职位 |`,
-          ),
-        ].join("\n"),
-      },
-    },
-    {
-      tag: "action",
-      actions: [
-        {
-          tag: "multi_select_static",
-          placeholder: { tag: "plain_text", content: "请选择需要关联的平台" },
-          options: MOCK_RECRUITMENT_PLATFORMS.map((platform) => ({
-            text: { tag: "plain_text", content: platform.name },
-            value: platform.id,
-          })),
-          value: {
-            action: LINK_POSITION_SELECT_ACTION,
-            field: "link_platforms",
-          },
-        },
-      ],
-    },
-  ]
 }
 
 export function buildLinkPositionCard(context: LinkPositionCardContext) {
@@ -94,7 +59,6 @@ export function buildLinkPositionCard(context: LinkPositionCardContext) {
     elements.pop()
   }
 
-  elements.push(...buildPlatformLinkCheckboxTable())
   elements.push({
     tag: "action",
     actions: [
@@ -148,8 +112,8 @@ export function buildClarificationCard(positionName: string) {
           {
             tag: "button",
             text: { tag: "plain_text", content: "开始澄清" },
-            type: "default",
-            value: { action: START_CLARIFICATION_ACTION },
+            type: "primary",
+            url: CLARIFICATION_H5_URL,
           },
         ],
       },

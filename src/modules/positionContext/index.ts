@@ -10,7 +10,7 @@ export {
   LINK_POSITION_SELECT_ACTION,
   SELECT_POSITIONS_EVENT_KEY,
   SELECT_POSITION_ACTION,
-  START_CLARIFICATION_ACTION,
+  CLARIFICATION_H5_URL,
 } from "./constants.js"
 export type { WorkspacePosition } from "./types.js"
 export { MOCK_RECRUITMENT_PLATFORMS, findRecruitmentPlatform } from "./mockPlatforms.js"
