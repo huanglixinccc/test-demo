@@ -5,6 +5,7 @@ import { logger } from "../../utils/logger.js"
 import { LruDedupe } from "../../utils/dedupe.js"
 import { isAnalyticsIntent } from "../../agents/analytics/query.js"
 import { extractTextFromPdf } from "../../utils/pdf.js"
+import { BIND_ACCOUNT_AND_SYNC_POSITIONS_TEXT } from "../../modules/accountBinding/constants.js"
 
 interface ImMessageEvent {
   sender: { sender_id: { open_id: string } }
@@ -18,7 +19,11 @@ interface ImMessageEvent {
 
 const messageDedupe = new LruDedupe(2000)
 
-export function makeBotMessageHandler(im: FeishuIM) {
+export interface BotMessageHandlerOptions {
+  onBindAccountAndSyncPositions?: (openId: string) => Promise<void>
+}
+
+export function makeBotMessageHandler(im: FeishuIM, options?: BotMessageHandlerOptions) {
   return async function handle(envelope: DecryptedEnvelope): Promise<void> {
     const ev = envelope.event as ImMessageEvent
     if (ev?.message?.chat_type !== "p2p") return
@@ -30,75 +35,89 @@ export function makeBotMessageHandler(im: FeishuIM) {
       return
     }
 
-    logger.info(
-      { openId: senderOpenId, type: ev.message.message_type, messageId: ev.message.message_id },
-      "botMessage.received",
-    )
-
     if (ev.message.message_type === "text") {
       const text = safeParseText(ev.message.content)
       if (!text) return
 
-      if (isReferralIntent(text)) {
-        await im.sendTextToUser(senderOpenId, "已收到您的内推，正在解析…")
-        bus.emit("ReferralReceived", {
-          text,
-          senderOpenId,
-          sourceMessageId: ev.message.message_id,
-        })
-        return
-      }
-
-      if (isAnalyticsIntent(text)) {
-        await im.sendTextToUser(senderOpenId, "正在统计招聘漏斗…")
-        bus.emit("AnalyticsQueryReceived", {
-          text,
-          senderOpenId,
-          sourceMessageId: ev.message.message_id,
-        })
-        return
-      }
-
-      await im.sendTextToUser(senderOpenId, "已收到，正在解析…")
-      bus.emit("ResumeReceived", {
-        text,
-        senderOpenId,
-        sourceMessageId: ev.message.message_id,
-      })
-      return
-    }
-
-    if (ev.message.message_type === "file") {
-      const fileMeta = safeParseFile(ev.message.content)
-      if (!fileMeta?.file_key) {
-        await im.sendTextToUser(senderOpenId, "未能识别该文件")
-        return
-      }
-      await im.sendTextToUser(senderOpenId, "已收到文件，正在提取文本…")
-      try {
-        const buf = await im.downloadMessageFile(ev.message.message_id, fileMeta.file_key)
-        const text = await extractText(buf, fileMeta.file_name ?? "")
-        if (!text) {
-          await im.sendTextToUser(
-            senderOpenId,
-            "文件中没有提取到文字（可能是扫描件）。请粘贴简历文本。",
-          )
-          return
+      if (text === BIND_ACCOUNT_AND_SYNC_POSITIONS_TEXT) {
+        if (options?.onBindAccountAndSyncPositions) {
+          await options.onBindAccountAndSyncPositions(senderOpenId)
         }
-        bus.emit("ResumeReceived", {
-          text,
-          senderOpenId,
-          sourceMessageId: ev.message.message_id,
-          filename: fileMeta.file_name,
-        })
-      } catch (err) {
-        logger.error({ err }, "botMessage.file.extract_failed")
-        await im.sendTextToUser(senderOpenId, "文件提取失败，请改用文本粘贴")
+        return
       }
+
       return
     }
 
-    logger.info({ type: ev.message.message_type }, "botMessage.unsupported_type")
+    // if (ev.message.message_type === "text") {
+    //   const text = safeParseText(ev.message.content)
+    //   if (!text) return
+    //
+    //   logger.info(
+    //     { openId: senderOpenId, type: ev.message.message_type, messageId: ev.message.message_id },
+    //     "botMessage.received",
+    //   )
+    //
+    //   if (isReferralIntent(text)) {
+    //     await im.sendTextToUser(senderOpenId, "已收到您的内推，正在解析…")
+    //     bus.emit("ReferralReceived", {
+    //       text,
+    //       senderOpenId,
+    //       sourceMessageId: ev.message.message_id,
+    //     })
+    //     return
+    //   }
+    //
+    //   if (isAnalyticsIntent(text)) {
+    //     await im.sendTextToUser(senderOpenId, "正在统计招聘漏斗…")
+    //     bus.emit("AnalyticsQueryReceived", {
+    //       text,
+    //       senderOpenId,
+    //       sourceMessageId: ev.message.message_id,
+    //     })
+    //     return
+    //   }
+    //
+    //   await im.sendTextToUser(senderOpenId, "已收到，正在解析…")
+    //   bus.emit("ResumeReceived", {
+    //     text,
+    //     senderOpenId,
+    //     sourceMessageId: ev.message.message_id,
+    //   })
+    //   return
+    // }
+    //
+    // if (ev.message.message_type === "file") {
+    //   const fileMeta = safeParseFile(ev.message.content)
+    //   if (!fileMeta?.file_key) {
+    //     await im.sendTextToUser(senderOpenId, "未能识别该文件")
+    //     return
+    //   }
+    //   await im.sendTextToUser(senderOpenId, "已收到文件，正在提取文本…")
+    //   try {
+    //     const buf = await im.downloadMessageFile(ev.message.message_id, fileMeta.file_key)
+    //     const text = await extractText(buf, fileMeta.file_name ?? "")
+    //     if (!text) {
+    //       await im.sendTextToUser(
+    //         senderOpenId,
+    //         "文件中没有提取到文字（可能是扫描件）。请粘贴简历文本。",
+    //       )
+    //       return
+    //     }
+    //     bus.emit("ResumeReceived", {
+    //       text,
+    //       senderOpenId,
+    //       sourceMessageId: ev.message.message_id,
+    //       filename: fileMeta.file_name,
+    //     })
+    //   } catch (err) {
+    //     logger.error({ err }, "botMessage.file.extract_failed")
+    //     await im.sendTextToUser(senderOpenId, "文件提取失败，请改用文本粘贴")
+    //   }
+    //   return
+    // }
+    //
+    // logger.info({ type: ev.message.message_type }, "botMessage.unsupported_type")
   }
 }
 

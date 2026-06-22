@@ -25,7 +25,9 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { FeishuEventDispatcher } = await import("./webhook/dispatcher.js")
   const { makeBotMessageHandler } = await import("./feishu/events/botMessage.js")
   const { makeBitableChangeHandler } = await import("./feishu/events/bitableChange.js")
-  const { registerAccountBinding } = await import("./modules/accountBinding/index.js")
+  const { registerAccountBinding, buildBindingCard } = await import(
+    "./modules/accountBinding/index.js"
+  )
   const { registerPositionContext, sendPositionSelectCard } = await import(
     "./modules/positionContext/index.js"
   )
@@ -42,7 +44,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
 
   const app = express()
   app.use(express.json({ limit: "2mb" }))
-  app.use(dashboardCorsMiddleware(deps.dashboardCorsOrigins ?? ["*"]))
+  // app.use(dashboardCorsMiddleware(deps.dashboardCorsOrigins ?? ["*"]))
 
   const client = new FeishuClient({ appId: deps.feishuAppId, appSecret: deps.feishuAppSecret })
   const bitable = new BitableTables(client, deps.bitableAppToken, deps.tableIds)
@@ -50,11 +52,11 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const ai = createDeepSeekProvider(deps.deepseek)
   const dispatcher = new FeishuEventDispatcher()
 
-  registerResumeAgent({ ai, bitable, im })
-  registerInterviewAgent({ bitable, im, hrOpenIds: deps.hrOpenIds })
-  registerReferralAgent({ ai, bitable, im })
-  registerAnalyticsAgent({ ai, bitable, im })
-  registerJdMatchAgent({ ai, bitable })
+  // registerResumeAgent({ ai, bitable, im })
+  // registerInterviewAgent({ bitable, im, hrOpenIds: deps.hrOpenIds })
+  // registerReferralAgent({ ai, bitable, im })
+  // registerAnalyticsAgent({ ai, bitable, im })
+  // registerJdMatchAgent({ ai, bitable })
 
   const { cardActionHandler: accountBindingCardAction, menuHandler: accountBindingMenu } =
     registerAccountBinding({
@@ -70,29 +72,38 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   )
   logger.info({ modules: ["accountBinding", "positionContext"] }, "botMenu.handlers.registered")
 
-  dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
+  // dispatcher.register("im.message.receive_v1", makeBotMessageHandler(im))
   dispatcher.register(
-    "drive.file.bitable_record_changed_v1",
-    makeBitableChangeHandler({
-      bitable,
-      interviewTableId: deps.tableIds.interview,
-      candidateTableId: deps.tableIds.candidate,
+    "im.message.receive_v1",
+    makeBotMessageHandler(im, {
+      onBindAccountAndSyncPositions: async (openId) => {
+        await im.sendCardToUser(openId, buildBindingCard())
+        await sendPositionSelectCard(im, openId)
+      },
     }),
   )
+  // dispatcher.register(
+  //   "drive.file.bitable_record_changed_v1",
+  //   makeBitableChangeHandler({
+  //     bitable,
+  //     interviewTableId: deps.tableIds.interview,
+  //     candidateTableId: deps.tableIds.candidate,
+  //   }),
+  // )
 
   const vc = new FeishuVC(client)
-  app.use(
-    "/api/dashboard",
-    createDashboardRouter({
-      bitable,
-      vc,
-      meetingOwnerFallback: deps.hrOpenIds[0] ?? "",
-      ai,
-      bossEnabled: deps.bossEnabled,
-      bossProfileDir: deps.bossProfileDir,
-      bossCdpPort: deps.bossCdpPort,
-    }),
-  )
+  // app.use(
+  //   "/api/dashboard",
+  //   createDashboardRouter({
+  //     bitable,
+  //     vc,
+  //     meetingOwnerFallback: deps.hrOpenIds[0] ?? "",
+  //     ai,
+  //     bossEnabled: deps.bossEnabled,
+  //     bossProfileDir: deps.bossProfileDir,
+  //     bossCdpPort: deps.bossCdpPort,
+  //   }),
+  // )
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true, ts: Date.now() })
@@ -115,7 +126,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
     })
   })
 
-  startInterviewWatchdog({ bitable, im, hrOpenIds: deps.hrOpenIds })
+  // startInterviewWatchdog({ bitable, im, hrOpenIds: deps.hrOpenIds })
 
   return app
 }
