@@ -4,21 +4,43 @@ import { MOCK_POSITIONS } from "../../../src/modules/positionContext/mockPositio
 import { SELECT_POSITION_ACTION } from "../../../src/modules/positionContext/constants.js"
 
 describe("position select card", () => {
-  it("builds card with current position header and select buttons", () => {
+  it("builds clickable row per position with one-line summary", () => {
     const card = buildPositionSelectCard(MOCK_POSITIONS, "pos_fe") as {
       header: { title: { content: string } }
-      elements: unknown[]
+      elements: Array<{ tag: string; actions?: Array<{ type: string; value: unknown; text: { content: string } }> }>
     }
 
     expect(card.header.title.content).toBe("选择工作区职位")
-    expect(JSON.stringify(card)).toContain("当前职位")
-    expect(JSON.stringify(card)).toContain("前端工程师")
-    expect(JSON.stringify(card)).toContain(SELECT_POSITION_ACTION)
-    expect(JSON.stringify(card)).toContain("pos_be")
+    expect(card.elements).toHaveLength(MOCK_POSITIONS.length)
+
+    const serialized = JSON.stringify(card)
+    expect(serialized).toContain("上海·张江 · **前端工程师** · 启用 · 已绑号")
+    expect(serialized).toContain("北京·望京 · **后端工程师** · 启用 · 未绑号")
+    expect(serialized).not.toContain('"content":"选择"')
+    expect(serialized).not.toContain("当前职位")
+
+    const currentRow = card.elements[0].actions?.[0]
+    const otherRow = card.elements[1].actions?.[0]
+
+    expect(currentRow?.type).toBe("primary")
+    expect(otherRow?.type).toBe("default")
+    expect(currentRow?.value).toEqual({
+      action: SELECT_POSITION_ACTION,
+      positionId: "pos_fe",
+    })
+    expect(otherRow?.value).toEqual({
+      action: SELECT_POSITION_ACTION,
+      positionId: "pos_be",
+    })
   })
 
-  it("marks current position button as 当前职位", () => {
-    const card = buildPositionSelectCard(MOCK_POSITIONS, "pos_fe")
-    expect(JSON.stringify(card)).toContain("当前职位")
+  it("uses default style when no position is selected", () => {
+    const card = buildPositionSelectCard(MOCK_POSITIONS, null) as {
+      elements: Array<{ actions?: Array<{ type: string }> }>
+    }
+
+    for (const row of card.elements) {
+      expect(row.actions?.[0]?.type).toBe("default")
+    }
   })
 })
