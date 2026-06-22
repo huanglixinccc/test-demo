@@ -13,14 +13,12 @@ export {
   START_CLARIFICATION_ACTION,
 } from "./constants.js"
 export type { WorkspacePosition } from "./types.js"
-export { MOCK_POSITIONS, findMockPosition } from "./mockPositions.js"
+export { MOCK_RECRUITMENT_PLATFORMS, findRecruitmentPlatform } from "./mockPlatforms.js"
 export {
-  MOCK_PLATFORM_POSITIONS,
-  MOCK_RECRUITMENT_PLATFORMS,
-  findPlatformPosition,
-  findRecruitmentPlatform,
-  isPositionFullyLinked,
-} from "./mockPlatforms.js"
+  MOCK_POSITIONS,
+  findMockPosition,
+  isWorkspacePositionPlatformLinked,
+} from "./mockPositions.js"
 export { positionContextStore, PositionContextStore } from "./store.js"
 export { buildPositionSelectCard } from "./card.js"
 export { buildClarificationCard, buildLinkPositionCard } from "./linkPositionCard.js"

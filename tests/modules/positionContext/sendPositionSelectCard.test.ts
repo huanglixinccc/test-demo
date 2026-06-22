@@ -25,7 +25,7 @@ describe("sendPositionSelectCard", () => {
       "ou_hr",
       expect.objectContaining({
         header: expect.objectContaining({
-          title: expect.objectContaining({ content: "关联职位" }),
+          title: expect.objectContaining({ content: "选择工作区职位" }),
         }),
       }),
     )

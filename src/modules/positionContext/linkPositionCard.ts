@@ -3,32 +3,22 @@ import {
   LINK_POSITION_SELECT_ACTION,
   START_CLARIFICATION_ACTION,
 } from "./constants.js"
-import {
-  MOCK_PLATFORM_POSITIONS,
-  MOCK_RECRUITMENT_PLATFORMS,
-  isPositionFullyLinked,
-  type RecruitmentPlatform,
-} from "./mockPlatforms.js"
+import { MOCK_POSITIONS } from "./mockPositions.js"
+import { MOCK_RECRUITMENT_PLATFORMS } from "./mockPlatforms.js"
 
-export interface LinkPositionCardState {
-  /** 触发选择的平台行（用于在旁边展示关联表格） */
-  expandedPlatformId: string | null
-  pendingPositionId: string | null
-}
-
-const EMPTY_STATE: LinkPositionCardState = {
-  expandedPlatformId: null,
-  pendingPositionId: null,
+export interface LinkPositionCardContext {
+  positionId: string
+  positionName: string
 }
 
 function buildPositionSelectOptions() {
-  return MOCK_PLATFORM_POSITIONS.map((position) => ({
+  return MOCK_POSITIONS.map((position) => ({
     text: { tag: "plain_text", content: position.name },
     value: position.id,
   }))
 }
 
-function buildPlatformLinkCheckboxTable(platformId: string) {
+function buildPlatformLinkCheckboxTable() {
   return [
     {
       tag: "div",
@@ -55,7 +45,6 @@ function buildPlatformLinkCheckboxTable(platformId: string) {
           })),
           value: {
             action: LINK_POSITION_SELECT_ACTION,
-            platformId,
             field: "link_platforms",
           },
         },
@@ -64,52 +53,48 @@ function buildPlatformLinkCheckboxTable(platformId: string) {
   ]
 }
 
-function buildPlatformRow(platform: RecruitmentPlatform, state: LinkPositionCardState) {
-  const rows: unknown[] = [
+export function buildLinkPositionCard(context: LinkPositionCardContext) {
+  const elements: unknown[] = [
     {
       tag: "div",
-      text: { tag: "plain_text", content: platform.name },
+      text: {
+        tag: "plain_text",
+        content: `请为【${context.positionName}】关联各平台职位`,
+      },
     },
-    {
-      tag: "action",
-      actions: [
-        {
-          tag: "select_static",
-          placeholder: { tag: "plain_text", content: "请选择职位" },
-          options: buildPositionSelectOptions(),
-          value: {
-            action: LINK_POSITION_SELECT_ACTION,
-            platformId: platform.id,
-          },
-        },
-      ],
-    },
+    { tag: "hr" },
   ]
 
-  const shouldExpand =
-    state.expandedPlatformId === platform.id &&
-    state.pendingPositionId &&
-    !isPositionFullyLinked(state.pendingPositionId)
-
-  if (shouldExpand) {
-    rows.push(...buildPlatformLinkCheckboxTable(platform.id))
-  }
-
-  return rows
-}
-
-export function buildLinkPositionCard(state: LinkPositionCardState = EMPTY_STATE) {
-  const elements: unknown[] = []
-
   for (const platform of MOCK_RECRUITMENT_PLATFORMS) {
-    elements.push(...buildPlatformRow(platform, state))
-    elements.push({ tag: "hr" })
+    elements.push(
+      {
+        tag: "div",
+        text: { tag: "plain_text", content: platform.name },
+      },
+      {
+        tag: "action",
+        actions: [
+          {
+            tag: "select_static",
+            placeholder: { tag: "plain_text", content: "请选择职位" },
+            options: buildPositionSelectOptions(),
+            value: {
+              action: LINK_POSITION_SELECT_ACTION,
+              platformId: platform.id,
+              field: "platform_position",
+            },
+          },
+        ],
+      },
+      { tag: "hr" },
+    )
   }
 
-  if (elements.length > 0 && (elements[elements.length - 1] as { tag?: string }).tag === "hr") {
+  if ((elements[elements.length - 1] as { tag?: string }).tag === "hr") {
     elements.pop()
   }
 
+  elements.push(...buildPlatformLinkCheckboxTable())
   elements.push({
     tag: "action",
     actions: [
@@ -119,15 +104,15 @@ export function buildLinkPositionCard(state: LinkPositionCardState = EMPTY_STATE
         type: "primary",
         value: {
           action: LINK_POSITION_CONFIRM_ACTION,
-          platformId: state.expandedPlatformId,
-          positionId: state.pendingPositionId,
+          positionId: context.positionId,
+          positionName: context.positionName,
         },
       },
     ],
   })
 
   return {
-    config: { wide_screen_mode: true, update_multi: true },
+    config: { wide_screen_mode: true },
     header: {
       template: "blue",
       title: { tag: "plain_text", content: "关联职位" },
@@ -169,14 +154,5 @@ export function buildClarificationCard(positionName: string) {
         ],
       },
     ],
-  }
-}
-
-export function buildLinkPositionCardUpdate(state: LinkPositionCardState) {
-  return {
-    card: {
-      type: "raw",
-      data: buildLinkPositionCard(state),
-    },
   }
 }

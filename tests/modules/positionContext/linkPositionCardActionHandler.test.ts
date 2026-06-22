@@ -35,7 +35,7 @@ describe("link position card action handler", () => {
     vi.clearAllMocks()
   })
 
-  it("sends clarification immediately when selecting fully linked first position on any platform", async () => {
+  it("returns demo toast on platform position select without sending cards", async () => {
     const im = fakeIm()
     const handler = makeLinkPositionCardActionHandler(im)
 
@@ -46,53 +46,17 @@ describe("link position card action handler", () => {
         option: "pos_fe",
         value: {
           action: LINK_POSITION_SELECT_ACTION,
-          platformId: "platform_liepin",
-        },
-      },
-    }))
-
-    expect(im.sendCardToUser).toHaveBeenCalledWith(
-      "ou_hr",
-      expect.objectContaining({
-        header: expect.objectContaining({
-          title: expect.objectContaining({ content: "您有一个新职位【前端工程师】待澄清" }),
-        }),
-      }),
-    )
-    expect(response).toEqual({
-      toast: { type: "success", content: "已发送【前端工程师】澄清消息" },
-    })
-  })
-
-  it("updates card with platform checkbox table for unlinked position", async () => {
-    const im = fakeIm()
-    const handler = makeLinkPositionCardActionHandler(im)
-
-    const response = await handler(envelope({
-      operator: { open_id: "ou_hr" },
-      action: {
-        tag: "select_static",
-        option: "pos_be",
-        value: {
-          action: LINK_POSITION_SELECT_ACTION,
-          platformId: "platform_liepin",
+          platformId: "platform_boss",
+          field: "platform_position",
         },
       },
     }))
 
     expect(im.sendCardToUser).not.toHaveBeenCalled()
-    expect(response).toEqual({
-      card: {
-        type: "raw",
-        data: expect.objectContaining({
-          header: expect.objectContaining({ title: expect.objectContaining({ content: "关联职位" }) }),
-        }),
-      },
-    })
-    expect(JSON.stringify(response)).toContain("请选择需要关联的平台")
+    expect(response).toEqual({ toast: { type: "info", content: "已选择（演示）" } })
   })
 
-  it("sends clarification card on confirm for unlinked position", async () => {
+  it("sends clarification card on confirm", async () => {
     const im = fakeIm()
     const handler = makeLinkPositionCardActionHandler(im)
 
@@ -102,8 +66,8 @@ describe("link position card action handler", () => {
         tag: "button",
         value: {
           action: LINK_POSITION_CONFIRM_ACTION,
-          platformId: "platform_moka",
           positionId: "pos_be",
+          positionName: "后端工程师",
         },
       },
     }))

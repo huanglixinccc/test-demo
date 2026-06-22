@@ -11,44 +11,28 @@ import {
 import { MOCK_RECRUITMENT_PLATFORMS } from "../../../src/modules/positionContext/mockPlatforms.js"
 
 describe("link position card", () => {
-  it("builds platform rows without exposing link state on card", () => {
-    const card = buildLinkPositionCard()
+  it("builds static demo link card for a workspace position", () => {
+    const card = buildLinkPositionCard({ positionId: "pos_be", positionName: "后端工程师" })
     const serialized = JSON.stringify(card)
 
     expect(card.header.title.content).toBe("关联职位")
+    expect(serialized).toContain("请为【后端工程师】关联各平台职位")
     expect(serialized).toContain("boss 直聘")
-    expect(serialized).toContain("猎聘")
     expect(serialized).toContain("请选择职位")
-    expect(serialized).not.toContain("allPlatformsLinked")
+    expect(serialized).toContain("请选择需要关联的平台")
+    expect(serialized).not.toContain("platformLinked")
     expect(serialized).not.toContain("已关联")
-    expect(serialized).not.toContain("未关联")
   })
 
-  it("shows platform checkbox table for unlinked position selection", () => {
-    const collapsed = JSON.stringify(buildLinkPositionCard())
-    const expanded = JSON.stringify(
-      buildLinkPositionCard({
-        expandedPlatformId: "platform_liepin",
-        pendingPositionId: "pos_be",
-      }),
-    )
+  it("embeds workspace position in confirm action", () => {
+    const card = buildLinkPositionCard({ positionId: "pos_pm", positionName: "产品经理" })
+    const serialized = JSON.stringify(card)
 
-    expect(collapsed).not.toContain("请选择需要关联的平台")
-    expect(expanded).toContain("请选择需要关联的平台")
-    expect(expanded).toContain("boss 直聘")
-    expect(expanded).toContain("moka")
-    expect(expanded).toContain('"platformId":"platform_liepin"')
-  })
-
-  it("does not show checkbox table for fully linked first position", () => {
-    const expanded = JSON.stringify(
-      buildLinkPositionCard({
-        expandedPlatformId: "platform_boss",
-        pendingPositionId: "pos_fe",
-      }),
-    )
-
-    expect(expanded).not.toContain("请选择需要关联的平台")
+    expect(serialized).toContain(LINK_POSITION_CONFIRM_ACTION)
+    expect(serialized).toContain('"positionId":"pos_pm"')
+    expect(serialized).toContain('"positionName":"产品经理"')
+    expect(serialized).toContain(LINK_POSITION_SELECT_ACTION)
+    expect(serialized).toContain(MOCK_RECRUITMENT_PLATFORMS[0].id)
   })
 
   it("builds clarification card with start button", () => {
@@ -59,17 +43,5 @@ describe("link position card", () => {
     expect(serialized).toContain("检测到新职位【前端工程师】已进入系统")
     expect(serialized).toContain("开始澄清")
     expect(serialized).toContain(START_CLARIFICATION_ACTION)
-  })
-
-  it("embeds select and confirm action values", () => {
-    const card = buildLinkPositionCard({
-      expandedPlatformId: "platform_moka",
-      pendingPositionId: "pos_be",
-    })
-    const serialized = JSON.stringify(card)
-
-    expect(serialized).toContain(LINK_POSITION_SELECT_ACTION)
-    expect(serialized).toContain(LINK_POSITION_CONFIRM_ACTION)
-    expect(serialized).toContain(MOCK_RECRUITMENT_PLATFORMS[0].id)
   })
 })

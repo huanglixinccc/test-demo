@@ -1,20 +1,7 @@
-export interface PlatformPositionOption {
-  id: string
-  name: string
-  /** 是否已在全部 4 个平台完成关联（不在卡片上展示） */
-  allPlatformsLinked: boolean
-}
-
 export interface RecruitmentPlatform {
   id: string
   name: string
 }
-
-export const MOCK_PLATFORM_POSITIONS: PlatformPositionOption[] = [
-  { id: "pos_fe", name: "前端工程师", allPlatformsLinked: true },
-  { id: "pos_be", name: "后端工程师", allPlatformsLinked: false },
-  { id: "pos_pm", name: "产品经理", allPlatformsLinked: false },
-]
 
 export const MOCK_RECRUITMENT_PLATFORMS: RecruitmentPlatform[] = [
   { id: "platform_boss", name: "boss 直聘" },
@@ -25,12 +12,4 @@ export const MOCK_RECRUITMENT_PLATFORMS: RecruitmentPlatform[] = [
 
 export function findRecruitmentPlatform(platformId: string): RecruitmentPlatform | undefined {
   return MOCK_RECRUITMENT_PLATFORMS.find((p) => p.id === platformId)
-}
-
-export function findPlatformPosition(positionId: string): PlatformPositionOption | undefined {
-  return MOCK_PLATFORM_POSITIONS.find((p) => p.id === positionId)
-}
-
-export function isPositionFullyLinked(positionId: string): boolean {
-  return findPlatformPosition(positionId)?.allPlatformsLinked ?? false
 }

@@ -3,12 +3,11 @@ import type { CardActionHandler } from "../../webhook/cardAction.js"
 import type { FeishuIM } from "../../feishu/im.js"
 import { logger } from "../../utils/logger.js"
 import { SELECT_POSITION_ACTION } from "./constants.js"
+import { buildClarificationCard, buildLinkPositionCard } from "./linkPositionCard.js"
 import {
-  buildPositionAlreadyCurrentResponse,
-  buildPositionSelectCard,
-  buildPositionSelectedResponse,
-} from "./card.js"
-import { MOCK_POSITIONS, findMockPosition } from "./mockPositions.js"
+  findMockPosition,
+  isWorkspacePositionPlatformLinked,
+} from "./mockPositions.js"
 import { positionContextStore } from "./store.js"
 
 interface CardActionEvent {
@@ -33,6 +32,14 @@ function readSelectPosition(value: unknown): { action?: string; positionId?: str
   }
 }
 
+async function sendClarificationCard(
+  im: FeishuIM,
+  openId: string,
+  positionName: string,
+): Promise<void> {
+  await im.sendCardToUser(openId, buildClarificationCard(positionName))
+}
+
 export function makePositionSelectCardActionHandler(im: FeishuIM): CardActionHandler {
   return async function handle(envelope: DecryptedEnvelope) {
     const ev = envelope.event as CardActionEvent
@@ -47,12 +54,6 @@ export function makePositionSelectCardActionHandler(im: FeishuIM): CardActionHan
       return { toast: { type: "error", content: "职位不存在，请重新打开列表" } }
     }
 
-    const currentId = positionContextStore.getCurrentPositionId(operatorOpenId ?? "")
-    if (currentId === position.id) {
-      logger.info({ openId: operatorOpenId, positionId: position.id }, "positionContext.select.already_current")
-      return buildPositionAlreadyCurrentResponse(position)
-    }
-
     if (!operatorOpenId) {
       return { toast: { type: "error", content: "无法识别操作人，请重试" } }
     }
@@ -64,22 +65,29 @@ export function makePositionSelectCardActionHandler(im: FeishuIM): CardActionHan
         openId: operatorOpenId,
         positionId: position.id,
         positionName: position.name,
-        address: position.address,
-        enabled: position.enabled,
-        accountBound: position.accountBound,
+        platformLinked: position.platformLinked,
       },
-      "positionContext.selected",
+      "positionContext.workspace.selected",
     )
 
     try {
+      if (isWorkspacePositionPlatformLinked(position.id)) {
+        await sendClarificationCard(im, operatorOpenId, position.name)
+        return {
+          toast: { type: "success", content: `已发送【${position.name}】澄清消息` },
+        }
+      }
+
       await im.sendCardToUser(
         operatorOpenId,
-        buildPositionSelectCard(MOCK_POSITIONS, position.id),
+        buildLinkPositionCard({ positionId: position.id, positionName: position.name }),
       )
+      return {
+        toast: { type: "info", content: "请完成平台关联后点击确认" },
+      }
     } catch (err) {
-      logger.error({ err, openId: operatorOpenId }, "positionContext.select.refresh_card_failed")
+      logger.error({ err, openId: operatorOpenId }, "positionContext.workspace.select_failed")
+      return { toast: { type: "error", content: "操作失败，请稍后重试" } }
     }
-
-    return buildPositionSelectedResponse(position)
   }
 }

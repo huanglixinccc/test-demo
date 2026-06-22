@@ -32,7 +32,32 @@ describe("position select card action handler", () => {
     positionContextStore.clearForTesting()
   })
 
-  it("records selection and returns success toast", async () => {
+  it("sends clarification directly for platform-linked workspace position", async () => {
+    const im = fakeIm()
+    const handler = makePositionSelectCardActionHandler(im)
+
+    const response = await handler(envelope({
+      operator: { open_id: "ou_hr" },
+      action: {
+        value: { action: SELECT_POSITION_ACTION, positionId: "pos_fe" },
+      },
+    }))
+
+    expect(positionContextStore.getCurrentPositionId("ou_hr")).toBe("pos_fe")
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_hr",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({ content: "您有一个新职位【前端工程师】待澄清" }),
+        }),
+      }),
+    )
+    expect(response).toEqual({
+      toast: { type: "success", content: "已发送【前端工程师】澄清消息" },
+    })
+  })
+
+  it("sends link position card for unlinked workspace position", async () => {
     const im = fakeIm()
     const handler = makePositionSelectCardActionHandler(im)
 
@@ -44,26 +69,16 @@ describe("position select card action handler", () => {
     }))
 
     expect(positionContextStore.getCurrentPositionId("ou_hr")).toBe("pos_be")
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_hr",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({ content: "关联职位" }),
+        }),
+      }),
+    )
     expect(response).toEqual({
-      toast: { type: "success", content: "已切换到：后端工程师" },
-    })
-    expect(im.sendCardToUser).toHaveBeenCalled()
-  })
-
-  it("returns info toast when selecting current position again", async () => {
-    positionContextStore.setCurrentPosition("ou_hr", "pos_fe")
-    const im = fakeIm()
-    const handler = makePositionSelectCardActionHandler(im)
-
-    const response = await handler(envelope({
-      operator: { open_id: "ou_hr" },
-      action: {
-        value: { action: SELECT_POSITION_ACTION, positionId: "pos_fe" },
-      },
-    }))
-
-    expect(response).toEqual({
-      toast: { type: "info", content: "当前已是：前端工程师" },
+      toast: { type: "info", content: "请完成平台关联后点击确认" },
     })
   })
 
