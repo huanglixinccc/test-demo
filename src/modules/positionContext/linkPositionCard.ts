@@ -67,40 +67,20 @@ function buildPlatformLinkCheckboxTable(platformId: string) {
 function buildPlatformRow(platform: RecruitmentPlatform, state: LinkPositionCardState) {
   const rows: unknown[] = [
     {
-      tag: "column_set",
-      flex_mode: "none",
-      columns: [
+      tag: "div",
+      text: { tag: "plain_text", content: platform.name },
+    },
+    {
+      tag: "action",
+      actions: [
         {
-          tag: "column",
-          width: "weighted",
-          weight: 1,
-          elements: [
-            {
-              tag: "div",
-              text: { tag: "plain_text", content: platform.name },
-            },
-          ],
-        },
-        {
-          tag: "column",
-          width: "weighted",
-          weight: 2,
-          elements: [
-            {
-              tag: "action",
-              actions: [
-                {
-                  tag: "select_static",
-                  placeholder: { tag: "plain_text", content: "请选择职位" },
-                  options: buildPositionSelectOptions(),
-                  value: {
-                    action: LINK_POSITION_SELECT_ACTION,
-                    platformId: platform.id,
-                  },
-                },
-              ],
-            },
-          ],
+          tag: "select_static",
+          placeholder: { tag: "plain_text", content: "请选择职位" },
+          options: buildPositionSelectOptions(),
+          value: {
+            action: LINK_POSITION_SELECT_ACTION,
+            platformId: platform.id,
+          },
         },
       ],
     },
