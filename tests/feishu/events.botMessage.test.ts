@@ -49,6 +49,184 @@ describe("bot message handler", () => {
     expect(im.sendTextToUser).not.toHaveBeenCalled()
   })
 
+  it("sends recruitment data card when message contains 寻聘数据", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_data",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "帮我看一下寻聘数据" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({ content: "【HRBP】今日寻聘数据" }),
+        }),
+      }),
+    )
+  })
+
+  it("sends clarification card when message contains 开始澄清 or 职位澄清", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_clarification",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "开始澄清" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({
+            content: "您有一个新职位【HRBP】待澄清",
+          }),
+        }),
+      }),
+    )
+  })
+
+  it("sends strategy template suggestion card when message contains 修改建议", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_suggestion",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "给我修改建议" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({
+            content: "【安卓高级开发工程师】配置修改建议已生成",
+          }),
+        }),
+      }),
+    )
+  })
+
+  it("sends task closed card when message contains 结束/暂停/关闭/停止", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_task_closed",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "结束寻聘任务" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({ content: "【HRBP】寻聘任务已关闭" }),
+        }),
+      }),
+    )
+  })
+
+  it("sends manual rejection card when message contains 人工淘汰", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_manual_rejection",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "帮我看人工淘汰" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({
+            content: "【机器学习平台研发工程师】人工淘汰理由分析",
+          }),
+        }),
+      }),
+    )
+  })
+
+  it("sends rejection reason card when message contains 淘汰理由 or 淘汰", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_rejection",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "帮我分析淘汰理由" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({ content: "【HRBP】淘汰理由分析" }),
+        }),
+      }),
+    )
+  })
+
+  it("sends search strategy card when message contains 寻访策略 or 策略模板", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_strategy",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "给我策略模板" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        elements: expect.arrayContaining([
+          expect.objectContaining({
+            text: expect.objectContaining({
+              content: expect.stringContaining("**寻访任务：**"),
+            }),
+          }),
+        ]),
+      }),
+    )
+  })
+
   it("ignores other p2p text without reply", async () => {
     const im = fakeIm()
     const onBindAccountAndSyncPositions = vi.fn().mockResolvedValue(undefined)
@@ -69,6 +247,7 @@ describe("bot message handler", () => {
     await new Promise((r) => setImmediate(r))
     expect(onBindAccountAndSyncPositions).not.toHaveBeenCalled()
     expect(im.sendTextToUser).not.toHaveBeenCalled()
+    expect(im.sendCardToUser).not.toHaveBeenCalled()
     expect(got).not.toHaveBeenCalled()
   })
 

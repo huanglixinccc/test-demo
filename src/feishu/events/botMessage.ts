@@ -6,6 +6,17 @@ import { LruDedupe } from "../../utils/dedupe.js"
 import { isAnalyticsIntent } from "../../agents/analytics/query.js"
 import { extractTextFromPdf } from "../../utils/pdf.js"
 import { BIND_ACCOUNT_AND_SYNC_POSITIONS_TEXT } from "../../modules/accountBinding/constants.js"
+import { buildTaskClosedCard } from "../../modules/positionContext/chatKeywordCards.js"
+import { dispatchChatKeywordReply } from "../../modules/positionContext/chatKeywordReply.js"
+import {
+  isClarificationIntent,
+  isManualRejectionIntent,
+  isRecruitmentDataIntent,
+  isRejectionReasonIntent,
+  isSearchStrategyIntent,
+  isStrategyTemplateSuggestionIntent,
+  isTaskClosedIntent,
+} from "../../modules/positionContext/chatKeywordIntents.js"
 
 interface ImMessageEvent {
   sender: { sender_id: { open_id: string } }
@@ -43,6 +54,48 @@ export function makeBotMessageHandler(im: FeishuIM, options?: BotMessageHandlerO
         if (options?.onBindAccountAndSyncPositions) {
           await options.onBindAccountAndSyncPositions(senderOpenId)
         }
+        return
+      }
+
+      if (isRecruitmentDataIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.recruitment_data")
+        await dispatchChatKeywordReply(im, senderOpenId, text)
+        return
+      }
+
+      if (isSearchStrategyIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.search_strategy")
+        await dispatchChatKeywordReply(im, senderOpenId, text)
+        return
+      }
+
+      if (isStrategyTemplateSuggestionIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.strategy_template_suggestion")
+        await dispatchChatKeywordReply(im, senderOpenId, text)
+        return
+      }
+
+      if (isManualRejectionIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.manual_rejection_reason")
+        await dispatchChatKeywordReply(im, senderOpenId, text)
+        return
+      }
+
+      if (isRejectionReasonIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.rejection_reason")
+        await dispatchChatKeywordReply(im, senderOpenId, text)
+        return
+      }
+
+      if (isTaskClosedIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.task_closed")
+        await im.sendCardToUser(senderOpenId, buildTaskClosedCard())
+        return
+      }
+
+      if (isClarificationIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.clarification")
+        await dispatchChatKeywordReply(im, senderOpenId, text)
         return
       }
 
