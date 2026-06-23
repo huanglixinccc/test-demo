@@ -8,14 +8,16 @@ export const MOCK_POSITIONS: WorkspacePosition[] = [
     enabled: true,
     accountBound: true,
     platformLinked: true,
+    clarified: false,
   },
   {
     id: "pos_be",
     name: "后端工程师",
     address: "北京·望京",
     enabled: true,
-    accountBound: false,
-    platformLinked: false,
+    accountBound: true,
+    platformLinked: true,
+    clarified: true,
   },
   {
     id: "pos_pm",
@@ -24,6 +26,7 @@ export const MOCK_POSITIONS: WorkspacePosition[] = [
     enabled: false,
     accountBound: false,
     platformLinked: false,
+    clarified: false,
   },
 ]
 
@@ -33,4 +36,8 @@ export function findMockPosition(positionId: string): WorkspacePosition | undefi
 
 export function isWorkspacePositionPlatformLinked(positionId: string): boolean {
   return findMockPosition(positionId)?.platformLinked ?? false
+}
+
+export function isWorkspacePositionClarified(positionId: string): boolean {
+  return findMockPosition(positionId)?.clarified ?? false
 }

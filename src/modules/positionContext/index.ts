@@ -22,6 +22,7 @@ export {
   MOCK_POSITIONS,
   findMockPosition,
   isWorkspacePositionPlatformLinked,
+  isWorkspacePositionClarified,
 } from "./mockPositions.js"
 export { positionContextStore, PositionContextStore } from "./store.js"
 export { buildPositionSelectCard } from "./card.js"

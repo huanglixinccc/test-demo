@@ -4,7 +4,9 @@ import type { WorkspacePosition } from "./types.js"
 function formatStatus(position: WorkspacePosition): string {
   const enabled = position.enabled ? "启用" : "停用"
   const bound = position.accountBound ? "已绑号" : "未绑号"
-  return `${enabled} · ${bound}`
+  const link = position.platformLinked ? "已关联" : "未关联"
+  const clarify = position.clarified ? "已澄清" : "未澄清"
+  return `${enabled} · ${bound} · ${link} · ${clarify}`
 }
 
 function formatPositionLine(position: WorkspacePosition, isCurrent: boolean): string {

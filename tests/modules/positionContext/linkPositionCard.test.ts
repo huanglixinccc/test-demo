@@ -16,13 +16,15 @@ import { MOCK_RECRUITMENT_PLATFORMS } from "../../../src/modules/positionContext
 
 describe("link position card", () => {
   it("builds static demo link card for a workspace position", () => {
-    const card = buildLinkPositionCard({ positionId: "pos_be", positionName: "后端工程师" })
+    const card = buildLinkPositionCard({ positionId: "pos_pm", positionName: "产品经理" })
     const serialized = JSON.stringify(card)
 
     expect(card.header.title.content).toBe("关联职位")
-    expect(serialized).toContain("请为【后端工程师】关联各平台职位")
+    expect(serialized).toContain("请为【产品经理】关联各平台职位")
     expect(serialized).toContain("boss 直聘")
     expect(serialized).toContain("请选择职位")
+    expect(serialized).toContain('"tag":"column_set"')
+    expect(serialized).toContain('"flex_mode":"bisect"')
     expect(serialized).not.toContain("platformLinked")
     expect(serialized).not.toContain("已关联")
   })

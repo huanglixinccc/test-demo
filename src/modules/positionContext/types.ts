@@ -4,6 +4,8 @@ export interface WorkspacePosition {
   address: string
   enabled: boolean
   accountBound: boolean
-  /** 是否已在全部平台完成关联（不在卡片上展示，第一个职位默认 true） */
+  /** 是否已在全部平台完成关联 */
   platformLinked: boolean
+  /** 是否已完成职位澄清 */
+  clarified: boolean
 }

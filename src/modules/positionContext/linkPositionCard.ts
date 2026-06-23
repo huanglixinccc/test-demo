@@ -34,20 +34,13 @@ function buildPositionSelectOptions() {
   }))
 }
 
-export function buildLinkPositionCard(context: LinkPositionCardContext) {
-  const elements: unknown[] = [
-    {
-      tag: "div",
-      text: {
-        tag: "plain_text",
-        content: `请为【${context.positionName}】关联各平台职位`,
-      },
-    },
-    { tag: "hr" },
-  ]
-
-  for (const platform of MOCK_RECRUITMENT_PLATFORMS) {
-    elements.push(
+function buildPlatformColumn(platform: (typeof MOCK_RECRUITMENT_PLATFORMS)[number]) {
+  return {
+    tag: "column",
+    width: "weighted",
+    weight: 1,
+    vertical_align: "top",
+    elements: [
       {
         tag: "div",
         text: { tag: "plain_text", content: platform.name },
@@ -67,13 +60,39 @@ export function buildLinkPositionCard(context: LinkPositionCardContext) {
           },
         ],
       },
-      { tag: "hr" },
-    )
+    ],
   }
+}
 
-  if ((elements[elements.length - 1] as { tag?: string }).tag === "hr") {
-    elements.pop()
+function buildPlatformColumnSets() {
+  const columnSets: unknown[] = []
+  for (let index = 0; index < MOCK_RECRUITMENT_PLATFORMS.length; index += 2) {
+    const pair = MOCK_RECRUITMENT_PLATFORMS.slice(index, index + 2)
+    columnSets.push({
+      tag: "column_set",
+      flex_mode: "bisect",
+      horizontal_spacing: "default",
+      columns: pair.map((platform) => buildPlatformColumn(platform)),
+    })
+    if (index + 2 < MOCK_RECRUITMENT_PLATFORMS.length) {
+      columnSets.push({ tag: "hr" })
+    }
   }
+  return columnSets
+}
+
+export function buildLinkPositionCard(context: LinkPositionCardContext) {
+  const elements: unknown[] = [
+    {
+      tag: "div",
+      text: {
+        tag: "plain_text",
+        content: `请为【${context.positionName}】关联各平台职位`,
+      },
+    },
+    { tag: "hr" },
+    ...buildPlatformColumnSets(),
+  ]
 
   elements.push({
     tag: "action",

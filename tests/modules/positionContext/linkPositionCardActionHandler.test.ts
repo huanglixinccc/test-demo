@@ -63,7 +63,36 @@ describe("link position card action handler", () => {
     expect(response).toEqual({ toast: { type: "info", content: "已选择" } })
   })
 
-  it("sends clarification card on confirm", async () => {
+  it("sends clarification card on confirm for unclarified position", async () => {
+    const im = fakeIm()
+    const handler = makeLinkPositionCardActionHandler(im)
+
+    const response = await handler(envelope({
+      operator: { open_id: "ou_hr" },
+      action: {
+        tag: "button",
+        value: {
+          action: LINK_POSITION_CONFIRM_ACTION,
+          positionId: "pos_pm",
+          positionName: "产品经理",
+        },
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_hr",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({ content: "您有一个新职位【产品经理】待澄清" }),
+        }),
+      }),
+    )
+    expect(response).toEqual({
+      toast: { type: "success", content: "已发送【产品经理】澄清消息" },
+    })
+  })
+
+  it("skips clarification on confirm when position is already clarified", async () => {
     const im = fakeIm()
     const handler = makeLinkPositionCardActionHandler(im)
 
@@ -79,16 +108,9 @@ describe("link position card action handler", () => {
       },
     }))
 
-    expect(im.sendCardToUser).toHaveBeenCalledWith(
-      "ou_hr",
-      expect.objectContaining({
-        header: expect.objectContaining({
-          title: expect.objectContaining({ content: "您有一个新职位【后端工程师】待澄清" }),
-        }),
-      }),
-    )
+    expect(im.sendCardToUser).not.toHaveBeenCalled()
     expect(response).toEqual({
-      toast: { type: "success", content: "已发送【后端工程师】澄清消息" },
+      toast: { type: "info", content: "【后端工程师】已完成澄清，无需重复发送" },
     })
   })
 

@@ -14,8 +14,8 @@ describe("position select card", () => {
     expect(card.elements).toHaveLength(MOCK_POSITIONS.length)
 
     const serialized = JSON.stringify(card)
-    expect(serialized).toContain("上海·张江 · **前端工程师** · 启用 · 已绑号")
-    expect(serialized).toContain("北京·望京 · **后端工程师** · 启用 · 未绑号")
+    expect(serialized).toContain("上海·张江 · **前端工程师** · 启用 · 已绑号 · 已关联 · 未澄清")
+    expect(serialized).toContain("北京·望京 · **后端工程师** · 启用 · 已绑号 · 已关联 · 已澄清")
     expect(serialized).not.toContain('"content":"选择"')
     expect(serialized).not.toContain("当前职位")
 

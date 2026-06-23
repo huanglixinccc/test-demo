@@ -68,16 +68,24 @@ export function makePositionSelectCardActionHandler(im: FeishuIM): CardActionHan
         positionId: position.id,
         positionName: position.name,
         platformLinked: position.platformLinked,
+        clarified: position.clarified,
       },
       "positionContext.workspace.selected",
     )
 
     try {
       if (isWorkspacePositionPlatformLinked(position.id)) {
-        await sendClarificationCard(im, operatorOpenId, position.name)
+        if (!position.clarified) {
+          await sendClarificationCard(im, operatorOpenId, position.name)
+          return buildPositionSelectCardCallbackResponse(MOCK_POSITIONS, position.id, {
+            type: "success",
+            content: `已切换到：${position.name}，已发送澄清消息`,
+          })
+        }
+
         return buildPositionSelectCardCallbackResponse(MOCK_POSITIONS, position.id, {
           type: "success",
-          content: `已切换到：${position.name}，已发送澄清消息`,
+          content: `已切换到：${position.name}`,
         })
       }
 

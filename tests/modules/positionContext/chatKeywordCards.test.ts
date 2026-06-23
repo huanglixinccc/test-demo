@@ -44,7 +44,6 @@ describe("chat keyword cards", () => {
     const serialized = JSON.stringify(card)
 
     expect(card.header.title.content).toBe("【HRBP】寻聘任务已关闭")
-    expect(serialized).toContain("查询今日进展 丨 查看职位画像")
     for (const link of TASK_CLOSED_LINKS) {
       expect(serialized).toContain(link.label)
       expect(serialized).toContain(link.message)

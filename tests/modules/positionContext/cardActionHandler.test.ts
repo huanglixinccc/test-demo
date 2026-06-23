@@ -32,7 +32,7 @@ describe("position select card action handler", () => {
     positionContextStore.clearForTesting()
   })
 
-  it("sends clarification directly for platform-linked workspace position", async () => {
+  it("sends clarification for linked but unclarified workspace position", async () => {
     const im = fakeIm()
     const handler = makePositionSelectCardActionHandler(im)
 
@@ -67,7 +67,7 @@ describe("position select card action handler", () => {
     expect(JSON.stringify(response?.card)).toContain("**前端工程师**")
   })
 
-  it("sends link position card for unlinked workspace position", async () => {
+  it("skips clarification for linked and clarified workspace position", async () => {
     const im = fakeIm()
     const handler = makePositionSelectCardActionHandler(im)
 
@@ -79,6 +79,32 @@ describe("position select card action handler", () => {
     }))
 
     expect(positionContextStore.getCurrentPositionId("ou_hr")).toBe("pos_be")
+    expect(im.sendCardToUser).not.toHaveBeenCalled()
+    expect(response).toEqual({
+      toast: { type: "success", content: "已切换到：后端工程师" },
+      card: {
+        type: "raw",
+        data: expect.objectContaining({
+          header: expect.objectContaining({
+            title: expect.objectContaining({ content: "选择工作区职位" }),
+          }),
+        }),
+      },
+    })
+  })
+
+  it("sends link position card for unlinked workspace position", async () => {
+    const im = fakeIm()
+    const handler = makePositionSelectCardActionHandler(im)
+
+    const response = await handler(envelope({
+      operator: { open_id: "ou_hr" },
+      action: {
+        value: { action: SELECT_POSITION_ACTION, positionId: "pos_pm" },
+      },
+    }))
+
+    expect(positionContextStore.getCurrentPositionId("ou_hr")).toBe("pos_pm")
     expect(im.sendCardToUser).toHaveBeenCalledWith(
       "ou_hr",
       expect.objectContaining({
@@ -88,7 +114,7 @@ describe("position select card action handler", () => {
       }),
     )
     expect(response).toEqual({
-      toast: { type: "info", content: "已切换到：后端工程师，请完成平台关联" },
+      toast: { type: "info", content: "已切换到：产品经理，请完成平台关联" },
       card: {
         type: "raw",
         data: expect.objectContaining({
@@ -99,7 +125,7 @@ describe("position select card action handler", () => {
       },
     })
     expect(JSON.stringify(response?.card)).toContain("**▸**")
-    expect(JSON.stringify(response?.card)).toContain("**后端工程师**")
+    expect(JSON.stringify(response?.card)).toContain("**产品经理**")
   })
 
   it("returns null for unrelated card actions", async () => {

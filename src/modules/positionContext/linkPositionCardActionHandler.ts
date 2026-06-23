@@ -10,6 +10,7 @@ import {
   START_RECRUITMENT_ACTION,
 } from "./constants.js"
 import { buildClarificationCard, buildRecruitmentStrategyCard } from "./linkPositionCard.js"
+import { findMockPosition } from "./mockPositions.js"
 
 interface CardActionEvent {
   operator?: { open_id?: string }
@@ -114,15 +115,22 @@ export function makeLinkPositionCardActionHandler(im: FeishuIM): CardActionHandl
         return { toast: { type: "error", content: "无法识别职位，请重新选择工作区职位" } }
       }
 
+      const position = parsed.positionId ? findMockPosition(parsed.positionId) : undefined
+
       logger.info(
         {
           openId: operatorOpenId,
           positionId: parsed.positionId,
           positionName,
+          clarified: position?.clarified,
           formValue: ev.action?.form_value,
         },
         "positionContext.link_position.confirmed",
       )
+
+      if (position?.clarified) {
+        return { toast: { type: "info", content: `【${positionName}】已完成澄清，无需重复发送` } }
+      }
 
       try {
         await sendClarificationCard(im, operatorOpenId, positionName)
