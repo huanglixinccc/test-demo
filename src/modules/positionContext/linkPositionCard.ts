@@ -188,12 +188,11 @@ export function buildRecruitmentStrategyCard(positionName: string) {
         },
         {
           tag: "column_set",
-          flex_mode: "trisect",
-          horizontal_spacing: "small",
+          flex_mode: "none",
+          horizontal_spacing: "medium",
           columns: RECRUITMENT_MODE_OPTIONS.map((mode) => ({
             tag: "column",
-            width: "weighted",
-            weight: 1,
+            width: "auto",
             vertical_align: "top",
             elements: [buildRecruitmentModeButton(positionName, mode)],
           })),

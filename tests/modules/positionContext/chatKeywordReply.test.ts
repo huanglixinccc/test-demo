@@ -77,7 +77,7 @@ describe("dispatchChatKeywordReply", () => {
             }),
             expect.objectContaining({
               tag: "column_set",
-              flex_mode: "trisect",
+              flex_mode: "none",
               columns: expect.arrayContaining([
                 expect.objectContaining({
                   elements: [
