@@ -21,10 +21,9 @@ describe("link position card", () => {
 
     expect(card.header.title.content).toBe("关联职位")
     expect(serialized).toContain("请为【产品经理】关联各平台职位")
-    expect(serialized).toContain("boss 直聘")
-    expect(serialized).toContain("请选择职位")
-    expect(serialized).toContain('"tag":"column_set"')
-    expect(serialized).toContain('"flex_mode":"bisect"')
+    expect(serialized).toContain("boss 直聘 · 请选择")
+    expect(serialized).toContain('"layout":"bisected"')
+    expect(serialized).not.toContain('"tag":"column_set"')
     expect(serialized).not.toContain("platformLinked")
     expect(serialized).not.toContain("已关联")
   })
