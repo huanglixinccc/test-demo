@@ -28,6 +28,17 @@ function fakeIm(): FeishuIM {
 }
 
 describe("sendNotification", () => {
+  it("builds low screen rate alert card with strategy suggestion button", () => {
+    const card = buildLowScreenRateAlertCard()
+    const serialized = JSON.stringify(card)
+
+    expect(card.header.title.content).toBe(MOCK_LOW_SCREEN_RATE_ALERT.title)
+    expect(serialized).toContain("过筛率仅为")
+    expect(serialized).toContain("寻聘策略建议修改")
+    expect(serialized).toContain("寻聘策略修改建议")
+    expect(serialized).toContain('"tag":"action"')
+  })
+
   it("sends card to demo openId by default", async () => {
     const im = fakeIm()
     const card = buildLowScreenRateAlertCard()
@@ -79,6 +90,7 @@ describe("notification cards", () => {
     const card = buildLowScreenRateAlertCard()
     expect(card.header.title.content).toBe(MOCK_LOW_SCREEN_RATE_ALERT.title)
     expect(JSON.stringify(card)).toContain("18.6%")
+    expect(JSON.stringify(card)).toContain("寻聘策略建议修改")
   })
 
   it("builds sync position reminder mock card", () => {

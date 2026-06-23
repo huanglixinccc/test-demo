@@ -1,5 +1,9 @@
+import { STRATEGY_SUGGESTION_KEYWORD, TASK_CLOSED_LINK_ACTION } from "./chatKeywordCards.js"
+
 /** 演示/手动触发通知的固定接收人 */
 export const DEMO_NOTIFICATION_OPEN_ID = "ou_79664ae0f2a5c43a42afeee7407632e3"
+
+export const LOW_SCREEN_RATE_STRATEGY_BUTTON_LABEL = "寻聘策略建议修改"
 
 export function buildSimpleNotificationCard(title: string, content: string) {
   return {
@@ -71,7 +75,33 @@ export const MOCK_CONTACTABLE_CANDIDATE_ALERT = {
 
 export function buildLowScreenRateAlertCard() {
   const { title, content } = MOCK_LOW_SCREEN_RATE_ALERT
-  return buildSimpleNotificationCard(title, content)
+  return {
+    config: { wide_screen_mode: true },
+    header: {
+      template: "blue",
+      title: { tag: "plain_text", content: title },
+    },
+    elements: [
+      {
+        tag: "div",
+        text: { tag: "lark_md", content },
+      },
+      {
+        tag: "action",
+        actions: [
+          {
+            tag: "button",
+            text: { tag: "plain_text", content: LOW_SCREEN_RATE_STRATEGY_BUTTON_LABEL },
+            type: "default",
+            value: {
+              action: TASK_CLOSED_LINK_ACTION,
+              message: STRATEGY_SUGGESTION_KEYWORD,
+            },
+          },
+        ],
+      },
+    ],
+  }
 }
 
 export function buildSyncPositionReminderCard() {

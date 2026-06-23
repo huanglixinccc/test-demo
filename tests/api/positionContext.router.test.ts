@@ -79,6 +79,21 @@ describe("POST /api/position-context/*", () => {
         header: expect.objectContaining({
           title: expect.objectContaining({ content: "【HRBP】过筛率预警" }),
         }),
+        elements: expect.arrayContaining([
+          expect.objectContaining({
+            tag: "action",
+            actions: expect.arrayContaining([
+              expect.objectContaining({
+                tag: "button",
+                text: expect.objectContaining({ content: "寻聘策略建议修改" }),
+                value: expect.objectContaining({
+                  action: "task_closed_link",
+                  message: "寻聘策略修改建议",
+                }),
+              }),
+            ]),
+          }),
+        ]),
       }),
     )
   })

@@ -182,10 +182,12 @@ export function buildRecruitmentModelCard() {
 
 export const TASK_CLOSED_LINK_ACTION = "task_closed_link"
 
+export const STRATEGY_SUGGESTION_KEYWORD = "寻聘策略修改建议"
+
 export const TASK_CLOSED_LINKS = [
   { label: "查询今日进展", message: "寻聘数据" },
   { label: "查看待处理人员", message: "查看待处理人员" },
-  { label: "寻聘策略修改建议", message: "寻聘策略修改建议" },
+  { label: "寻聘策略修改建议", message: STRATEGY_SUGGESTION_KEYWORD },
 ] as const
 
 /** 任务关闭卡片链接对应的固定私聊文本回复 */

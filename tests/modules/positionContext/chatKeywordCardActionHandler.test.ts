@@ -27,6 +27,34 @@ function fakeIm(): FeishuIM {
 }
 
 describe("chat keyword card action handler", () => {
+  it("dispatches strategy suggestion card from low screen rate alert button", async () => {
+    const im = fakeIm()
+    const handler = makeChatKeywordCardActionHandler(im)
+
+    const response = await handler(envelope({
+      operator: { open_id: "ou_hr" },
+      action: {
+        tag: "button",
+        value: {
+          action: TASK_CLOSED_LINK_ACTION,
+          message: "寻聘策略修改建议",
+        },
+      },
+    }))
+
+    expect(response).toBeNull()
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_hr",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({
+            content: "【HRBP】寻聘策略修改建议",
+          }),
+        }),
+      }),
+    )
+  })
+
   it("dispatches strategy suggestion card for 寻聘策略修改建议 link", async () => {
     const im = fakeIm()
     const handler = makeChatKeywordCardActionHandler(im)
