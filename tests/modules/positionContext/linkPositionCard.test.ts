@@ -9,6 +9,7 @@ import {
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
   MOCK_RECRUITMENT_STRATEGY_TEMPLATE,
+  RECRUITMENT_MODE_OPTIONS,
   START_CLARIFICATION_ACTION,
   START_RECRUITMENT_ACTION,
 } from "../../../src/modules/positionContext/constants.js"
@@ -53,13 +54,26 @@ describe("link position card", () => {
     expect(serialized).toContain('"type":"callback"')
   })
 
-  it("builds recruitment strategy card matching demo copy", () => {
+  it("builds recruitment strategy card with three mode buttons", () => {
     const card = buildRecruitmentStrategyCard("前端工程师")
     const serialized = JSON.stringify(card)
 
     expect(serialized).toContain("【前端工程师】寻聘策略已生成")
     expect(serialized).toContain(`已自动匹配【${MOCK_RECRUITMENT_STRATEGY_TEMPLATE}】策略模板，可以开启寻聘了。`)
-    expect(serialized).toContain("开启寻聘")
+    for (const mode of RECRUITMENT_MODE_OPTIONS) {
+      expect(serialized).toContain(mode)
+    }
     expect(serialized).toContain(START_RECRUITMENT_ACTION)
+    expect(card.elements.at(-1)).toEqual(
+      expect.objectContaining({
+        actions: expect.arrayContaining(
+          RECRUITMENT_MODE_OPTIONS.map((mode) =>
+            expect.objectContaining({
+              text: expect.objectContaining({ content: mode }),
+            }),
+          ),
+        ),
+      }),
+    )
   })
 })

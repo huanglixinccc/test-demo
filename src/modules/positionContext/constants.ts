@@ -15,6 +15,13 @@ export const START_CLARIFICATION_ACTION = "start_clarification"
 
 export const START_RECRUITMENT_ACTION = "start_recruitment"
 
+/** 寻聘策略卡片上的演示模式按钮（选择不影响后续逻辑） */
+export const RECRUITMENT_MODE_OPTIONS = [
+  "仅人岗匹配",
+  "人岗匹配+意向确认",
+  "人岗匹配+意向确认+约面",
+] as const
+
 /** 点击开始澄清后，延迟发送寻聘策略卡片 */
 export const RECRUITMENT_STRATEGY_DELAY_MS = 10_000
 

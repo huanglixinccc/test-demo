@@ -150,7 +150,7 @@ describe("link position card action handler", () => {
     )
   })
 
-  it("returns success toast when start recruitment is clicked", async () => {
+  it("returns success toast when any recruitment mode button is clicked", async () => {
     const im = fakeIm()
     const handler = makeLinkPositionCardActionHandler(im)
 
@@ -161,6 +161,7 @@ describe("link position card action handler", () => {
         value: {
           action: START_RECRUITMENT_ACTION,
           positionName: "前端工程师",
+          mode: "人岗匹配+意向确认+约面",
         },
       },
     }))

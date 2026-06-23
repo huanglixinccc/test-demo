@@ -3,6 +3,7 @@ import {
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
   MOCK_RECRUITMENT_STRATEGY_TEMPLATE,
+  RECRUITMENT_MODE_OPTIONS,
   START_CLARIFICATION_ACTION,
   START_RECRUITMENT_ACTION,
 } from "./constants.js"
@@ -155,17 +156,16 @@ export function buildRecruitmentStrategyCard(positionName: string) {
       },
       {
         tag: "action",
-        actions: [
-          {
-            tag: "button",
-            text: { tag: "plain_text", content: "开启寻聘" },
-            type: "primary",
-            value: {
-              action: START_RECRUITMENT_ACTION,
-              positionName,
-            },
+        actions: RECRUITMENT_MODE_OPTIONS.map((mode) => ({
+          tag: "button",
+          text: { tag: "plain_text", content: mode },
+          type: "default",
+          value: {
+            action: START_RECRUITMENT_ACTION,
+            positionName,
+            mode,
           },
-        ],
+        })),
       },
     ],
   }

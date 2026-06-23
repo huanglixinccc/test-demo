@@ -44,6 +44,7 @@ function readAction(event: CardActionEvent) {
     positionId: typeof record.positionId === "string" ? record.positionId : undefined,
     positionName: typeof record.positionName === "string" ? record.positionName : undefined,
     field: typeof record.field === "string" ? record.field : undefined,
+    mode: typeof record.mode === "string" ? record.mode : undefined,
   }
 }
 
@@ -90,7 +91,11 @@ export function makeLinkPositionCardActionHandler(im: FeishuIM): CardActionHandl
 
     if (parsed?.action === START_RECRUITMENT_ACTION) {
       logger.info(
-        { openId: operatorOpenId, positionName: parsed.positionName },
+        {
+          openId: operatorOpenId,
+          positionName: parsed.positionName,
+          mode: parsed.mode,
+        },
         "positionContext.recruitment.started",
       )
       return { toast: { type: "success", content: "任务已启动" } }

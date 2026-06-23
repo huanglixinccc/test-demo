@@ -5,12 +5,11 @@ import {
   buildRecruitmentDataCard,
   buildRejectionReasonAnalysisCard,
   buildSearchStrategyTemplateCard,
-  buildStartRecruitmentTaskCard,
   buildStrategyTemplateSuggestionCard,
   FIXED_CHAT_TEXT_REPLIES,
 } from "./chatKeywordCards.js"
 import { DEMO_CLARIFICATION_POSITION_NAME } from "./constants.js"
-import { buildClarificationCard } from "./linkPositionCard.js"
+import { buildClarificationCard, buildRecruitmentStrategyCard } from "./linkPositionCard.js"
 import {
   isClarificationIntent,
   isManualRejectionIntent,
@@ -64,8 +63,14 @@ export async function dispatchChatKeywordReply(
   }
 
   if (isStartRecruitmentTaskIntent(text)) {
-    logger.info({ openId }, "chatKeyword.start_recruitment_task")
-    await im.sendCardToUser(openId, buildStartRecruitmentTaskCard())
+    logger.info(
+      { openId, positionName: DEMO_CLARIFICATION_POSITION_NAME },
+      "chatKeyword.start_recruitment_task",
+    )
+    await im.sendCardToUser(
+      openId,
+      buildRecruitmentStrategyCard(DEMO_CLARIFICATION_POSITION_NAME),
+    )
     return
   }
 

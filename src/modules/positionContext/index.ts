@@ -32,7 +32,6 @@ export {
   buildRecruitmentDataCard,
   buildRejectionReasonAnalysisCard,
   buildSearchStrategyTemplateCard,
-  buildStartRecruitmentTaskCard,
   buildStrategyTemplateSuggestionCard,
   buildTaskClosedCard,
   TASK_CLOSED_LINK_ACTION,

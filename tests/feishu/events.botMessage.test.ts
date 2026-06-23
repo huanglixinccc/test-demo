@@ -227,7 +227,7 @@ describe("bot message handler", () => {
     )
   })
 
-  it("sends start recruitment task card when message contains 开始/继续/开启", async () => {
+  it("sends recruitment strategy card when message contains 开始/继续/开启", async () => {
     const im = fakeIm()
     const handler = makeBotMessageHandler(im)
 
@@ -244,13 +244,11 @@ describe("bot message handler", () => {
     expect(im.sendCardToUser).toHaveBeenCalledWith(
       "ou_1",
       expect.objectContaining({
-        header: expect.objectContaining({
-          template: "green",
-          title: expect.objectContaining({ content: "开启成功" }),
-        }),
         elements: expect.arrayContaining([
           expect.objectContaining({
-            text: expect.objectContaining({ content: "开始执行寻访任务" }),
+            text: expect.objectContaining({
+              content: expect.stringContaining("【HRBP】寻聘策略已生成"),
+            }),
           }),
         ]),
       }),

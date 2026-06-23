@@ -152,22 +152,6 @@ export const FIXED_CHAT_TEXT_REPLIES: Record<string, string> = {
     "今日招呼数偏少，可能原因：1. 活跃时段未覆盖 2. 筛选条件过严 3. 渠道曝光不足 4. 职位竞争力待提升。",
 }
 
-export function buildStartRecruitmentTaskCard() {
-  return {
-    config: { wide_screen_mode: true },
-    header: {
-      template: "green",
-      title: { tag: "plain_text", content: "开启成功" },
-    },
-    elements: [
-      {
-        tag: "div",
-        text: { tag: "plain_text", content: "开始执行寻访任务" },
-      },
-    ],
-  }
-}
-
 export function buildTaskClosedCard() {
   return {
     config: { wide_screen_mode: true },
