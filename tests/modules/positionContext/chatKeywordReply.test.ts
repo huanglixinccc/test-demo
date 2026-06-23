@@ -53,7 +53,7 @@ describe("dispatchChatKeywordReply", () => {
       expect.objectContaining({
         header: expect.objectContaining({
           title: expect.objectContaining({
-            content: "【安卓高级开发工程师】配置修改建议已生成",
+            content: "【HRBP】寻聘策略修改建议",
           }),
         }),
       }),
@@ -117,6 +117,64 @@ describe("dispatchChatKeywordReply", () => {
         header: expect.objectContaining({
           title: expect.objectContaining({ content: "【HRBP】淘汰理由分析" }),
         }),
+      }),
+    )
+  })
+
+  it("sends markdown cards for new private chat keywords", async () => {
+    const im = fakeIm()
+    const cases = [
+      { keyword: "招呼数太少", title: "【HRBP】招呼数分析", snippet: "**结合相关数据看**" },
+      { keyword: "查询今天执行进展", title: "【HRBP】今日执行进展", snippet: "**截至今天 10:30，已完成：**" },
+      { keyword: "查看今日数据", title: "【HRBP】今日寻聘数据", snippet: "**日期：**2026/06/21" },
+      { keyword: "今日待处理候选人", title: "【HRBP】今日待处理候选人", snippet: "**待处理列表：**" },
+      { keyword: "查看寻聘模型", title: "【HRBP】寻聘模型", snippet: "**寻访任务配置**" },
+    ] as const
+
+    for (const { keyword, title, snippet } of cases) {
+      vi.mocked(im.sendTextToUser).mockClear()
+      vi.mocked(im.sendCardToUser).mockClear()
+      await dispatchChatKeywordReply(im, "ou_1", keyword)
+
+      expect(im.sendCardToUser).toHaveBeenCalledWith(
+        "ou_1",
+        expect.objectContaining({
+          header: expect.objectContaining({
+            title: expect.objectContaining({ content: title }),
+          }),
+          elements: expect.arrayContaining([
+            expect.objectContaining({
+              text: expect.objectContaining({
+                tag: "lark_md",
+                content: expect.stringContaining(snippet),
+              }),
+            }),
+          ]),
+        }),
+      )
+      expect(im.sendTextToUser).not.toHaveBeenCalled()
+    }
+  })
+
+  it("sends updated strategy suggestion card for 寻聘策略修改建议", async () => {
+    const im = fakeIm()
+    await dispatchChatKeywordReply(im, "ou_1", "寻聘策略修改建议")
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({
+            content: "【HRBP】寻聘策略修改建议",
+          }),
+        }),
+        elements: expect.arrayContaining([
+          expect.objectContaining({
+            text: expect.objectContaining({
+              content: expect.stringContaining("区分度不够"),
+            }),
+          }),
+        ]),
       }),
     )
   })

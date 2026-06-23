@@ -1,13 +1,18 @@
 import { describe, it, expect } from "vitest"
 import {
   isClarificationIntent,
+  isLowGreetingIntent,
   isManualRejectionIntent,
+  isPendingCandidatesIntent,
   isRecruitmentDataIntent,
+  isRecruitmentModelIntent,
   isRejectionReasonIntent,
   isSearchStrategyIntent,
   isStartRecruitmentTaskIntent,
   isStrategyTemplateSuggestionIntent,
   isTaskClosedIntent,
+  isTodayDataIntent,
+  isTodayProgressIntent,
 } from "../../../src/modules/positionContext/chatKeywordIntents.js"
 
 describe("chat keyword intents", () => {
@@ -26,6 +31,15 @@ describe("chat keyword intents", () => {
     expect(isSearchStrategyIntent("策略模板建议")).toBe(false)
     expect(isSearchStrategyIntent("寻聘策略修改建议")).toBe(false)
     expect(isStrategyTemplateSuggestionIntent("寻聘策略修改建议")).toBe(true)
+  })
+
+  it("matches new private chat keyword intents", () => {
+    expect(isLowGreetingIntent("招呼数太少")).toBe(true)
+    expect(isTodayProgressIntent("查询今天执行进展")).toBe(true)
+    expect(isTodayDataIntent("查看今日数据")).toBe(true)
+    expect(isPendingCandidatesIntent("今日待处理候选人")).toBe(true)
+    expect(isPendingCandidatesIntent("查看待处理人员")).toBe(true)
+    expect(isRecruitmentModelIntent("查看寻聘模型")).toBe(true)
   })
 
   it("matches search strategy keywords", () => {

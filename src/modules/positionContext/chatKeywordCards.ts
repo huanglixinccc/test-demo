@@ -136,6 +136,50 @@ export function buildManualRejectionReasonAnalysisCard() {
   }
 }
 
+import {
+  LOW_GREETING_MD,
+  PENDING_CANDIDATES_MD,
+  RECRUITMENT_MODEL_MD,
+  TODAY_DATA_MD,
+  TODAY_PROGRESS_MD,
+} from "./chatKeywordTexts.js"
+
+function buildMarkdownReplyCard(title: string, content: string) {
+  return {
+    config: { wide_screen_mode: true },
+    header: {
+      template: "blue",
+      title: { tag: "plain_text", content: title },
+    },
+    elements: [
+      {
+        tag: "div",
+        text: { tag: "lark_md", content },
+      },
+    ],
+  }
+}
+
+export function buildLowGreetingCard() {
+  return buildMarkdownReplyCard("【HRBP】招呼数分析", LOW_GREETING_MD)
+}
+
+export function buildTodayProgressCard() {
+  return buildMarkdownReplyCard("【HRBP】今日执行进展", TODAY_PROGRESS_MD)
+}
+
+export function buildTodayDataCard() {
+  return buildMarkdownReplyCard("【HRBP】今日寻聘数据", TODAY_DATA_MD)
+}
+
+export function buildPendingCandidatesCard() {
+  return buildMarkdownReplyCard("【HRBP】今日待处理候选人", PENDING_CANDIDATES_MD)
+}
+
+export function buildRecruitmentModelCard() {
+  return buildMarkdownReplyCard("【HRBP】寻聘模型", RECRUITMENT_MODEL_MD)
+}
+
 export const TASK_CLOSED_LINK_ACTION = "task_closed_link"
 
 export const TASK_CLOSED_LINKS = [
@@ -148,8 +192,6 @@ export const TASK_CLOSED_LINKS = [
 export const FIXED_CHAT_TEXT_REPLIES: Record<string, string> = {
   查看职位画像:
     "【职位画像】本科及以上学历，5-10年相关经验，熟悉机器学习平台研发与部署，具备分布式系统实践经验，沟通协作能力强。",
-  招呼数太少原因:
-    "今日招呼数偏少，可能原因：1. 活跃时段未覆盖 2. 筛选条件过严 3. 渠道曝光不足 4. 职位竞争力待提升。",
 }
 
 export function buildTaskClosedCard() {
@@ -176,13 +218,63 @@ export function buildTaskClosedCard() {
   }
 }
 
-export const MOCK_STRATEGY_TEMPLATE_SUGGESTION_POSITION = "安卓高级开发工程师"
+export const MOCK_STRATEGY_TEMPLATE_SUGGESTION_POSITION = "HRBP"
 
-const STRATEGY_TEMPLATE_SUGGESTION_MD = `**当前值：**技能关键词：车(必须)、App(必须)、开发(必备)、Android开发框架、Android应用性能优化、Android调试工具与方法、Java或Kotin、代码规范问题分析与故障排查、车载应用开发(加分)
+const STRATEGY_TEMPLATE_SUGGESTION_MD = `从今天的数据看，配置当前不是"卡得太严"，而是"区分度不够，筛到的人虽然能打招呼，但对最终产出帮助有限"。更具体地说，问题主要不在招呼动作，而在筛选配置没有把真正高价值人群收得更准。
 
-<font color='red'>**建议值：**</font>技能关键词:车@@汽车@@车载@@车联网(必备)、App@@客客户端@@移动端(必备)、开发(必备)、Android开发框架、Android应用性能优化、Android调试工具与方法、Java或Kotlin、代码规范问题分析与故障排查、车载应用开发(加分)。
+**支撑这个判断的关键数据有 4 个：**
 
-<font color='blue'>**依据：**</font>anavsis feedback明确指出"关键词:车app，通过率14.3%-这是当前最明显的卡点"，日建议改成车/汽车/出行/智能舱/车联网/app/客户端/移动""中的可选命中。结合temexplained对"关键词"的定义，"逗号..都是目的关系，多个@@分隔的值之间才是或的关系"，当前把"车(必须)、App(必须)"并列为必备，极易造成匹配率为。将两组核心词改为组内或关系，能在不删除岗位核心方向"车载安卓"的前提下，减少误杀，优先修复匹配率和过筛后的查看量。该修改只落在policy.conditions支持的skils子模型中，且未触碰职位画像中仍需保留的车载安卓方向、Android开发经验"这一硬约束，合规且属于最小改动。`
+**1. 前段执行量并不低**
+现在是 10:26，今天大约过去了 15.2% 的工作时间。按目标推算，此时预期应完成约 8 个查看、5 个招呼；实际已完成 10 个查看、9 个招呼，前段动作是达标的，说明不是"搜不到人"或"执行没跟上"。
+
+**2. 招呼率很高，但不一定代表配置有效**
+今日招呼率 90.0%，高于近 3 日均值 56.3%。这意味着看过的人里大部分都被打了招呼，通常说明当前筛选出来的人"表面上都还行"，但也可能意味着筛选条件不够聚焦，导致大量"看起来能聊、但未必是最优目标"的人被放进来了。
+
+**3. 过筛率偏高，配置有偏松迹象**
+今日过筛率 21.7%，高于近 3 日的 15.5%。按经验，这个水平不算严，反而偏高，说明当前配置并没有把人卡得很死。若最终成果没有同步放大，往往意味着过滤条件缺少真正有区分度的硬约束。
+
+**4. 最明显的问题在条件本身：多个条件几乎不起筛选作用**
+- 关键词通过率 40.0%
+- 学历否决条件通过率 100.0%
+- 学历通过率 100.0%
+- 年龄通过率 100.0%
+- 工作经验通过率 100.0%
+
+这组数据很关键：年龄、学历、经验几乎没有筛选作用，说明它们对当前候选池基本不构成约束；而关键词通过率 40.0% 也偏高，说明关键词集合本身可能过宽、混合了多个方向，导致"沾边的人"被放进来很多。
+
+**【关键证据】**
+1. 整体过筛率 21.7%；60 个列表人选里，有 13 个进入查看详情。按现有口径，合理线应低于 3%
+2. 条件通过率里，学历否决、学历、年龄、工作经验全部是 100%；这些条件基本没有起到筛人作用
+3. 推荐任务和搜索任务都没有设置曾任职位；活跃度只卡到"本周内活跃/近一周活跃"，范围偏大
+4. 推荐任务关键词包含"双足、四足"，搜索任务关键词只有"感知算法、BEV、OCC"；和职位里更直接的"检测、跟踪、融合、多模态、闭环、标定"相比，约束还不够贴岗位
+5. 智能筛选标准未设置；列表页没有再做一层岗位贴合度过滤
+
+**【可执行改法（<=5，按优先级 P0/P1...）】**
+
+**P0：改"寻访配置-活跃度"**
+- **当前：**推荐任务为"本周内活跃"；搜索任务为"近一周活跃"
+- **改成：**先统一收紧为"刚刚活跃"；若人数不足，再放到"在线"
+- **预期改善：**直接减少低意向人选进入查看详情，降低整体过筛率，提升有效查看人数
+
+**P1：改"寻访配置-曾任职位"**
+- **当前：**缺失
+- **改成：**新增"感知、视觉"
+- **预期改善：**先在列表页卡掉非感知主线人选，减少无关简历进入查看详情
+
+**P2：改"寻访配置-关键词过滤"**
+- **当前：**推荐任务为"BEV 或 OCC 或数据闭环或感知算法或双足或四足"；搜索任务为"感知算法或 BEV 或 OCC"
+- **改成：**推荐任务和搜索任务统一收紧为"感知@@检测@@跟踪@@融合@@闭环@@标定@@多模态"
+- **预期改善：**把关键词从行业词收紧到岗位技能词，降低过筛率，提升查看后命中率
+
+**P3：改"寻访配置-工作经验"**
+- **当前：**1-20 年
+- **改成：**3-5 年
+- **预期改善：**贴近岗位要求，减少明显不匹配的人进入查看详情
+
+**P4：改"寻访配置-智能筛选标准"**
+- **当前：**缺失
+- **改成：**新增"优先通过有人形机器人或智能驾驶感知算法落地经验，且做过检测、跟踪、融合、闭环、标定、多模态相关工作的人选"
+- **预期改善：**在列表页再加一道岗位贴合过滤，继续压低过筛率，减少查看资源浪费`
 
 export function buildStrategyTemplateSuggestionCard() {
   return {
@@ -191,7 +283,7 @@ export function buildStrategyTemplateSuggestionCard() {
       template: "blue",
       title: {
         tag: "plain_text",
-        content: `【${MOCK_STRATEGY_TEMPLATE_SUGGESTION_POSITION}】配置修改建议已生成`,
+        content: `【${MOCK_STRATEGY_TEMPLATE_SUGGESTION_POSITION}】寻聘策略修改建议`,
       },
     },
     elements: [

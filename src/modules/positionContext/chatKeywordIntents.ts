@@ -13,10 +13,31 @@ export function isSearchStrategyIntent(text: string): boolean {
 
 export function isStrategyTemplateSuggestionIntent(text: string): boolean {
   return (
+    text.includes("寻聘策略修改建议") ||
     text.includes("修改策略模板建议") ||
     text.includes("策略模板建议") ||
     text.includes("修改建议")
   )
+}
+
+export function isLowGreetingIntent(text: string): boolean {
+  return text.includes("招呼数太少")
+}
+
+export function isTodayProgressIntent(text: string): boolean {
+  return text.includes("查询今天执行进展")
+}
+
+export function isTodayDataIntent(text: string): boolean {
+  return text.includes("查看今日数据")
+}
+
+export function isPendingCandidatesIntent(text: string): boolean {
+  return text.includes("今日待处理候选人") || text.includes("查看待处理人员")
+}
+
+export function isRecruitmentModelIntent(text: string): boolean {
+  return text.includes("查看寻聘模型")
 }
 
 export function isTaskClosedIntent(text: string): boolean {

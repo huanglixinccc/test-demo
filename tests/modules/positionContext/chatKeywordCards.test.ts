@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest"
 import {
+  buildLowGreetingCard,
   buildManualRejectionReasonAnalysisCard,
   buildRecruitmentDataCard,
   buildRejectionReasonAnalysisCard,
   buildSearchStrategyTemplateCard,
   buildStrategyTemplateSuggestionCard,
   buildTaskClosedCard,
+  buildTodayDataCard,
   MOCK_MANUAL_REJECTION_REASONS,
   MOCK_RECRUITMENT_DATA,
   MOCK_REJECTION_REASONS,
@@ -27,16 +29,27 @@ describe("chat keyword cards", () => {
     expect(serialized).toContain(`**联系方式数：**${MOCK_RECRUITMENT_DATA.contacts}`)
   })
 
-  it("builds strategy template suggestion card with colored markdown sections", () => {
+  it("builds strategy template suggestion card with updated demo copy", () => {
     const card = buildStrategyTemplateSuggestionCard()
     const serialized = JSON.stringify(card)
 
-    expect(card.header.title.content).toBe("【安卓高级开发工程师】配置修改建议已生成")
-    expect(serialized).toContain("**当前值：**")
-    expect(serialized).toContain("<font color='red'>**建议值：**</font>")
-    expect(serialized).toContain("<font color='blue'>**依据：**</font>")
-    expect(serialized).toContain("Java或Kotin")
-    expect(serialized).toContain("车@@汽车@@车载@@车联网(必备)")
+    expect(card.header.title.content).toBe("【HRBP】寻聘策略修改建议")
+    expect(serialized).toContain("区分度不够")
+    expect(serialized).toContain("**支撑这个判断的关键数据有 4 个：**")
+    expect(serialized).toContain("**1. 前段执行量并不低**")
+    expect(serialized).toContain("**【关键证据】**")
+    expect(serialized).toContain("**P0：改")
+    expect(serialized).toContain("感知算法、BEV、OCC")
+  })
+
+  it("builds markdown reply cards for private chat keywords", () => {
+    const lowGreeting = buildLowGreetingCard()
+    expect(lowGreeting.header.title.content).toBe("【HRBP】招呼数分析")
+    expect(JSON.stringify(lowGreeting)).toContain("**建议按优先级做这几件事：**")
+
+    const todayData = buildTodayDataCard()
+    expect(todayData.header.title.content).toBe("【HRBP】今日寻聘数据")
+    expect(JSON.stringify(todayData)).toContain("**日期：**2026/06/21")
   })
 
   it("builds task closed card with link buttons", () => {

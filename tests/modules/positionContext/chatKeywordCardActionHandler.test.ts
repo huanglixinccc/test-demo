@@ -48,7 +48,7 @@ describe("chat keyword card action handler", () => {
       expect.objectContaining({
         header: expect.objectContaining({
           title: expect.objectContaining({
-            content: "【安卓高级开发工程师】配置修改建议已生成",
+            content: "【HRBP】寻聘策略修改建议",
           }),
         }),
       }),
