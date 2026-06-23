@@ -17,12 +17,19 @@ import {
   TriggerClarificationError,
   triggerClarification,
 } from "../../modules/positionContext/triggerClarification.js"
+import {
+  TriggerRecruitmentStrategyError,
+  triggerRecruitmentStrategy,
+} from "../../modules/positionContext/triggerRecruitmentStrategy.js"
 
 function handleApiError(
   err: unknown,
   res: Response,
   next: NextFunction,
-  ErrorClass: typeof TriggerClarificationError | typeof SendNotificationError,
+  ErrorClass:
+    | typeof TriggerClarificationError
+    | typeof TriggerRecruitmentStrategyError
+    | typeof SendNotificationError,
 ): void {
   if (err instanceof ErrorClass) {
     res.status(err.statusCode).json({ ok: false, error: err.message })
@@ -46,6 +53,22 @@ export function createPositionContextRouter(deps: { im: FeishuIM }): Router {
         res.json({ ok: true, ...result })
       } catch (err) {
         handleApiError(err, res, next, TriggerClarificationError)
+      }
+    },
+  )
+
+  router.post(
+    "/manual-recruitment-strategy",
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const positionName =
+          typeof req.body?.positionName === "string" ? req.body.positionName : ""
+        const openIds = resolveNotificationOpenIds(req.body)
+
+        const result = await triggerRecruitmentStrategy(deps.im, { positionName, openIds })
+        res.json({ ok: true, ...result })
+      } catch (err) {
+        handleApiError(err, res, next, TriggerRecruitmentStrategyError)
       }
     },
   )

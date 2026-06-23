@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { makeLinkPositionCardActionHandler } from "../../../src/modules/positionContext/linkPositionCardActionHandler.js"
 import {
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
-  RECRUITMENT_STRATEGY_DELAY_MS,
   START_CLARIFICATION_ACTION,
   START_RECRUITMENT_ACTION,
 } from "../../../src/modules/positionContext/constants.js"
@@ -35,11 +34,6 @@ function fakeIm(): FeishuIM {
 describe("link position card action handler", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   it("returns demo toast on platform position select without sending cards", async () => {
@@ -114,7 +108,7 @@ describe("link position card action handler", () => {
     })
   })
 
-  it("schedules recruitment strategy card 10s after start clarification", async () => {
+  it("returns toast on start clarification without scheduling recruitment strategy card", async () => {
     const im = fakeIm()
     const handler = makeLinkPositionCardActionHandler(im)
 
@@ -131,26 +125,6 @@ describe("link position card action handler", () => {
 
     expect(response).toEqual({ toast: { type: "info", content: "正在打开澄清页面" } })
     expect(im.sendCardToUser).not.toHaveBeenCalled()
-
-    await vi.advanceTimersByTimeAsync(RECRUITMENT_STRATEGY_DELAY_MS - 1)
-    expect(im.sendCardToUser).not.toHaveBeenCalled()
-
-    await vi.advanceTimersByTimeAsync(1)
-    expect(im.sendCardToUser).toHaveBeenCalledWith(
-      "ou_hr",
-      expect.objectContaining({
-        schema: "2.0",
-        body: expect.objectContaining({
-          elements: expect.arrayContaining([
-            expect.objectContaining({
-              text: expect.objectContaining({
-                content: expect.stringContaining("【前端工程师】寻聘策略已生成"),
-              }),
-            }),
-          ]),
-        }),
-      }),
-    )
   })
 
   it("returns success toast when any recruitment mode button is clicked", async () => {

@@ -33,6 +33,38 @@ describe("POST /api/position-context/*", () => {
     expect(res.body.sent).toEqual([DEMO_NOTIFICATION_OPEN_ID])
   })
 
+  it("triggers recruitment strategy card for default demo openId", async () => {
+    const im = fakeIm()
+    const app = appWithRouter(im)
+
+    const res = await request(app)
+      .post("/api/position-context/manual-recruitment-strategy")
+      .send({ positionName: "前端工程师" })
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({
+      ok: true,
+      positionName: "前端工程师",
+      sent: [DEMO_NOTIFICATION_OPEN_ID],
+      failed: [],
+    })
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      DEMO_NOTIFICATION_OPEN_ID,
+      expect.objectContaining({
+        schema: "2.0",
+        body: expect.objectContaining({
+          elements: expect.arrayContaining([
+            expect.objectContaining({
+              text: expect.objectContaining({
+                content: expect.stringContaining("【前端工程师】寻聘策略已生成"),
+              }),
+            }),
+          ]),
+        }),
+      }),
+    )
+  })
+
   it("sends low screen rate alert", async () => {
     const im = fakeIm()
     const app = appWithRouter(im)

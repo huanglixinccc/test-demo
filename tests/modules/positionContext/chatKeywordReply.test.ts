@@ -76,8 +76,18 @@ describe("dispatchChatKeywordReply", () => {
               }),
             }),
             expect.objectContaining({
-              tag: "button",
-              text: expect.objectContaining({ content: "仅人岗匹配" }),
+              tag: "column_set",
+              flex_mode: "trisect",
+              columns: expect.arrayContaining([
+                expect.objectContaining({
+                  elements: [
+                    expect.objectContaining({
+                      tag: "button",
+                      text: expect.objectContaining({ content: "仅人岗匹配" }),
+                    }),
+                  ],
+                }),
+              ]),
             }),
           ]),
         }),

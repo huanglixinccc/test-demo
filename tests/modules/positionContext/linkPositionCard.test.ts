@@ -68,7 +68,13 @@ describe("link position card", () => {
       expect(serialized).toContain(mode)
     }
     expect(serialized).toContain(START_RECRUITMENT_ACTION)
-    expect(card.body.elements.at(-1)).toEqual(
+    expect(serialized).toContain('"tag":"column_set"')
+    expect(serialized).toContain('"flex_mode":"trisect"')
+    const modeButtons = card.body.elements
+      .flatMap((el) => (el.tag === "column_set" ? el.columns : []))
+      .flatMap((col) => col.elements)
+    expect(modeButtons).toHaveLength(3)
+    expect(modeButtons.at(-1)).toEqual(
       expect.objectContaining({
         tag: "button",
         text: expect.objectContaining({ content: RECRUITMENT_MODE_OPTIONS[2] }),

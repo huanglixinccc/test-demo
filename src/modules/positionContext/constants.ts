@@ -25,9 +25,6 @@ export const RECRUITMENT_MODE_OPTIONS = [
   "人岗匹配+意向确认+约面",
 ] as const
 
-/** 点击开始澄清后，延迟发送寻聘策略卡片 */
-export const RECRUITMENT_STRATEGY_DELAY_MS = 10_000
-
 /** 演示用策略模板名称 */
 export const MOCK_RECRUITMENT_STRATEGY_TEMPLATE = "锐捷—职能类职位"
 

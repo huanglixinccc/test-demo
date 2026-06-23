@@ -5,11 +5,10 @@ import { logger } from "../../utils/logger.js"
 import {
   LINK_POSITION_CONFIRM_ACTION,
   LINK_POSITION_SELECT_ACTION,
-  RECRUITMENT_STRATEGY_DELAY_MS,
   START_CLARIFICATION_ACTION,
   START_RECRUITMENT_ACTION,
 } from "./constants.js"
-import { buildClarificationCard, buildRecruitmentStrategyCard } from "./linkPositionCard.js"
+import { buildClarificationCard } from "./linkPositionCard.js"
 import { findMockPosition } from "./mockPositions.js"
 
 interface CardActionEvent {
@@ -56,21 +55,6 @@ async function sendClarificationCard(
   await im.sendCardToUser(openId, buildClarificationCard(positionName))
 }
 
-function scheduleRecruitmentStrategyCard(
-  im: FeishuIM,
-  openId: string,
-  positionName: string,
-): void {
-  setTimeout(() => {
-    im.sendCardToUser(openId, buildRecruitmentStrategyCard(positionName)).catch((err) => {
-      logger.error(
-        { err, openId, positionName },
-        "positionContext.recruitment_strategy.send_failed",
-      )
-    })
-  }, RECRUITMENT_STRATEGY_DELAY_MS)
-}
-
 export function makeLinkPositionCardActionHandler(im: FeishuIM): CardActionHandler {
   return async function handle(envelope: DecryptedEnvelope) {
     const ev = envelope.event as CardActionEvent
@@ -79,13 +63,10 @@ export function makeLinkPositionCardActionHandler(im: FeishuIM): CardActionHandl
 
     if (parsed?.action === START_CLARIFICATION_ACTION) {
       const positionName = parsed.positionName ?? "职位"
-      if (operatorOpenId) {
-        scheduleRecruitmentStrategyCard(im, operatorOpenId, positionName)
-        logger.info(
-          { openId: operatorOpenId, positionName },
-          "positionContext.recruitment_strategy.scheduled",
-        )
-      }
+      logger.info(
+        { openId: operatorOpenId, positionName },
+        "positionContext.clarification.started",
+      )
       return { toast: { type: "info", content: "正在打开澄清页面" } }
     }
 

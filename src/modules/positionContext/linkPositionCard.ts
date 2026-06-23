@@ -147,6 +147,25 @@ export function buildClarificationCard(
   }
 }
 
+function buildRecruitmentModeButton(positionName: string, mode: string) {
+  return {
+    tag: "button",
+    type: "default",
+    text: { tag: "plain_text", content: mode },
+    behaviors: [
+      buildRecruitmentOpenUrlBehavior(),
+      {
+        type: "callback",
+        value: {
+          action: START_RECRUITMENT_ACTION,
+          positionName,
+          mode,
+        },
+      },
+    ],
+  }
+}
+
 export function buildRecruitmentStrategyCard(positionName: string) {
   return {
     schema: "2.0",
@@ -167,22 +186,18 @@ export function buildRecruitmentStrategyCard(positionName: string) {
             content: `已自动匹配【${MOCK_RECRUITMENT_STRATEGY_TEMPLATE}】策略模板，可以开启寻聘了。`,
           },
         },
-        ...RECRUITMENT_MODE_OPTIONS.map((mode) => ({
-          tag: "button",
-          type: "default",
-          text: { tag: "plain_text", content: mode },
-          behaviors: [
-            buildRecruitmentOpenUrlBehavior(),
-            {
-              type: "callback",
-              value: {
-                action: START_RECRUITMENT_ACTION,
-                positionName,
-                mode,
-              },
-            },
-          ],
-        })),
+        {
+          tag: "column_set",
+          flex_mode: "trisect",
+          horizontal_spacing: "small",
+          columns: RECRUITMENT_MODE_OPTIONS.map((mode) => ({
+            tag: "column",
+            width: "weighted",
+            weight: 1,
+            vertical_align: "top",
+            elements: [buildRecruitmentModeButton(positionName, mode)],
+          })),
+        },
       ],
     },
   }

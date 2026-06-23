@@ -56,6 +56,10 @@ export {
   normalizeOpenIds,
 } from "./triggerClarification.js"
 export {
+  triggerRecruitmentStrategy,
+  TriggerRecruitmentStrategyError,
+} from "./triggerRecruitmentStrategy.js"
+export {
   sendNotificationCard,
   sendCustomNotification,
   SendNotificationError,
