@@ -14,6 +14,7 @@ import {
   isRecruitmentDataIntent,
   isRejectionReasonIntent,
   isSearchStrategyIntent,
+  isStartRecruitmentTaskIntent,
   isStrategyTemplateSuggestionIntent,
   isTaskClosedIntent,
 } from "../../modules/positionContext/chatKeywordIntents.js"
@@ -95,6 +96,12 @@ export function makeBotMessageHandler(im: FeishuIM, options?: BotMessageHandlerO
 
       if (isClarificationIntent(text)) {
         logger.info({ openId: senderOpenId }, "botMessage.clarification")
+        await dispatchChatKeywordReply(im, senderOpenId, text)
+        return
+      }
+
+      if (isStartRecruitmentTaskIntent(text)) {
+        logger.info({ openId: senderOpenId }, "botMessage.start_recruitment_task")
         await dispatchChatKeywordReply(im, senderOpenId, text)
         return
       }

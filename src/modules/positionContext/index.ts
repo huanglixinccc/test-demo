@@ -32,6 +32,7 @@ export {
   buildRecruitmentDataCard,
   buildRejectionReasonAnalysisCard,
   buildSearchStrategyTemplateCard,
+  buildStartRecruitmentTaskCard,
   buildStrategyTemplateSuggestionCard,
   buildTaskClosedCard,
   TASK_CLOSED_LINK_ACTION,
@@ -44,6 +45,7 @@ export {
   isRecruitmentDataIntent,
   isRejectionReasonIntent,
   isSearchStrategyIntent,
+  isStartRecruitmentTaskIntent,
   isStrategyTemplateSuggestionIntent,
   isTaskClosedIntent,
 } from "./chatKeywordIntents.js"

@@ -60,6 +60,27 @@ describe("dispatchChatKeywordReply", () => {
     )
   })
 
+  it("sends start recruitment task card for 开始/继续/开启", async () => {
+    const im = fakeIm()
+    await dispatchChatKeywordReply(im, "ou_1", "继续寻访")
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          template: "green",
+          title: expect.objectContaining({ content: "开启成功" }),
+        }),
+        elements: expect.arrayContaining([
+          expect.objectContaining({
+            text: expect.objectContaining({ content: "开始执行寻访任务" }),
+          }),
+        ]),
+      }),
+    )
+    expect(im.sendTextToUser).not.toHaveBeenCalled()
+  })
+
   it("sends fixed text for 查看职位画像", async () => {
     const im = fakeIm()
     await dispatchChatKeywordReply(im, "ou_1", "查看职位画像")

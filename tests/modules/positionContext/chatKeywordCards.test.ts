@@ -4,6 +4,7 @@ import {
   buildRecruitmentDataCard,
   buildRejectionReasonAnalysisCard,
   buildSearchStrategyTemplateCard,
+  buildStartRecruitmentTaskCard,
   buildStrategyTemplateSuggestionCard,
   buildTaskClosedCard,
   MOCK_MANUAL_REJECTION_REASONS,
@@ -37,6 +38,18 @@ describe("chat keyword cards", () => {
     expect(serialized).toContain("<font color='blue'>**依据：**</font>")
     expect(serialized).toContain("Java或Kotin")
     expect(serialized).toContain("车@@汽车@@车载@@车联网(必备)")
+  })
+
+  it("builds start recruitment task card with success toast title", () => {
+    const card = buildStartRecruitmentTaskCard()
+
+    expect(card.header.template).toBe("green")
+    expect(card.header.title.content).toBe("开启成功")
+    expect(card.elements[0]).toEqual(
+      expect.objectContaining({
+        text: expect.objectContaining({ content: "开始执行寻访任务" }),
+      }),
+    )
   })
 
   it("builds task closed card with link buttons", () => {

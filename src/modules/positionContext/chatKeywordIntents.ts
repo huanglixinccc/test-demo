@@ -35,3 +35,8 @@ export function isManualRejectionIntent(text: string): boolean {
 export function isClarificationIntent(text: string): boolean {
   return text.includes("开始澄清") || text.includes("职位澄清")
 }
+
+export function isStartRecruitmentTaskIntent(text: string): boolean {
+  if (isClarificationIntent(text)) return false
+  return /开始|继续|开启/.test(text)
+}

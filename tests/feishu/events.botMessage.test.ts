@@ -227,6 +227,36 @@ describe("bot message handler", () => {
     )
   })
 
+  it("sends start recruitment task card when message contains 开始/继续/开启", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+
+    await handler(envelope({
+      sender: { sender_id: { open_id: "ou_1" } },
+      message: {
+        message_id: "om_start_task",
+        chat_type: "p2p",
+        message_type: "text",
+        content: JSON.stringify({ text: "开启寻聘" }),
+      },
+    }))
+
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      "ou_1",
+      expect.objectContaining({
+        header: expect.objectContaining({
+          template: "green",
+          title: expect.objectContaining({ content: "开启成功" }),
+        }),
+        elements: expect.arrayContaining([
+          expect.objectContaining({
+            text: expect.objectContaining({ content: "开始执行寻访任务" }),
+          }),
+        ]),
+      }),
+    )
+  })
+
   it("ignores other p2p text without reply", async () => {
     const im = fakeIm()
     const onBindAccountAndSyncPositions = vi.fn().mockResolvedValue(undefined)

@@ -5,6 +5,7 @@ import {
   isRecruitmentDataIntent,
   isRejectionReasonIntent,
   isSearchStrategyIntent,
+  isStartRecruitmentTaskIntent,
   isStrategyTemplateSuggestionIntent,
   isTaskClosedIntent,
 } from "../../../src/modules/positionContext/chatKeywordIntents.js"
@@ -58,6 +59,17 @@ describe("chat keyword intents", () => {
     expect(isClarificationIntent("职位澄清一下")).toBe(true)
   })
 
+  it("matches start recruitment task keywords", () => {
+    expect(isStartRecruitmentTaskIntent("开始寻聘")).toBe(true)
+    expect(isStartRecruitmentTaskIntent("继续执行")).toBe(true)
+    expect(isStartRecruitmentTaskIntent("开启任务")).toBe(true)
+  })
+
+  it("does not treat clarification as start recruitment task", () => {
+    expect(isStartRecruitmentTaskIntent("开始澄清")).toBe(false)
+    expect(isStartRecruitmentTaskIntent("职位澄清")).toBe(false)
+  })
+
   it("does not match unrelated text", () => {
     expect(isRecruitmentDataIntent("随便聊聊")).toBe(false)
     expect(isSearchStrategyIntent("随便聊聊")).toBe(false)
@@ -66,5 +78,6 @@ describe("chat keyword intents", () => {
     expect(isTaskClosedIntent("随便聊聊")).toBe(false)
     expect(isStrategyTemplateSuggestionIntent("随便聊聊")).toBe(false)
     expect(isClarificationIntent("随便聊聊")).toBe(false)
+    expect(isStartRecruitmentTaskIntent("随便聊聊")).toBe(false)
   })
 })
