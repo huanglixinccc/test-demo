@@ -9,13 +9,7 @@ import { BIND_ACCOUNT_AND_SYNC_POSITIONS_TEXT } from "../../modules/accountBindi
 import { buildTaskClosedCard } from "../../modules/positionContext/chatKeywordCards.js"
 import { dispatchChatKeywordReply } from "../../modules/positionContext/chatKeywordReply.js"
 import {
-  isClarificationIntent,
-  isManualRejectionIntent,
-  isRecruitmentDataIntent,
-  isRejectionReasonIntent,
-  isSearchStrategyIntent,
-  isStartRecruitmentTaskIntent,
-  isStrategyTemplateSuggestionIntent,
+  isChatKeywordIntent,
   isTaskClosedIntent,
 } from "../../modules/positionContext/chatKeywordIntents.js"
 
@@ -58,50 +52,14 @@ export function makeBotMessageHandler(im: FeishuIM, options?: BotMessageHandlerO
         return
       }
 
-      if (isRecruitmentDataIntent(text)) {
-        logger.info({ openId: senderOpenId }, "botMessage.recruitment_data")
-        await dispatchChatKeywordReply(im, senderOpenId, text)
-        return
-      }
-
-      if (isSearchStrategyIntent(text)) {
-        logger.info({ openId: senderOpenId }, "botMessage.search_strategy")
-        await dispatchChatKeywordReply(im, senderOpenId, text)
-        return
-      }
-
-      if (isStrategyTemplateSuggestionIntent(text)) {
-        logger.info({ openId: senderOpenId }, "botMessage.strategy_template_suggestion")
-        await dispatchChatKeywordReply(im, senderOpenId, text)
-        return
-      }
-
-      if (isManualRejectionIntent(text)) {
-        logger.info({ openId: senderOpenId }, "botMessage.manual_rejection_reason")
-        await dispatchChatKeywordReply(im, senderOpenId, text)
-        return
-      }
-
-      if (isRejectionReasonIntent(text)) {
-        logger.info({ openId: senderOpenId }, "botMessage.rejection_reason")
-        await dispatchChatKeywordReply(im, senderOpenId, text)
-        return
-      }
-
       if (isTaskClosedIntent(text)) {
         logger.info({ openId: senderOpenId }, "botMessage.task_closed")
         await im.sendCardToUser(senderOpenId, buildTaskClosedCard())
         return
       }
 
-      if (isClarificationIntent(text)) {
-        logger.info({ openId: senderOpenId }, "botMessage.clarification")
-        await dispatchChatKeywordReply(im, senderOpenId, text)
-        return
-      }
-
-      if (isStartRecruitmentTaskIntent(text)) {
-        logger.info({ openId: senderOpenId }, "botMessage.start_recruitment_task")
+      if (isChatKeywordIntent(text)) {
+        logger.info({ openId: senderOpenId, text }, "botMessage.chat_keyword")
         await dispatchChatKeywordReply(im, senderOpenId, text)
         return
       }

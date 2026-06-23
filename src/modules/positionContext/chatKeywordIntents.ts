@@ -1,3 +1,5 @@
+import { FIXED_CHAT_TEXT_REPLIES } from "./chatKeywordCards.js"
+
 export function isRecruitmentDataIntent(text: string): boolean {
   return text.includes("寻聘数据")
 }
@@ -25,19 +27,23 @@ export function isLowGreetingIntent(text: string): boolean {
 }
 
 export function isTodayProgressIntent(text: string): boolean {
-  return text.includes("查询今天执行进展")
+  return (
+    text.includes("执行进展") ||
+    text.includes("今日进展") ||
+    text.includes("今天执行进展")
+  )
 }
 
 export function isTodayDataIntent(text: string): boolean {
-  return text.includes("查看今日数据")
+  return text.includes("今日数据") || text.includes("今日寻聘数据")
 }
 
 export function isPendingCandidatesIntent(text: string): boolean {
-  return text.includes("今日待处理候选人") || text.includes("查看待处理人员")
+  return text.includes("待处理候选人") || text.includes("待处理人员")
 }
 
 export function isRecruitmentModelIntent(text: string): boolean {
-  return text.includes("查看寻聘模型")
+  return text.includes("寻聘模型")
 }
 
 export function isTaskClosedIntent(text: string): boolean {
@@ -60,4 +66,23 @@ export function isClarificationIntent(text: string): boolean {
 export function isStartRecruitmentTaskIntent(text: string): boolean {
   if (isClarificationIntent(text)) return false
   return /开始|继续|开启/.test(text)
+}
+
+/** 是否应走私聊关键词回复（供 botMessage 入口统一判断） */
+export function isChatKeywordIntent(text: string): boolean {
+  return (
+    isRecruitmentDataIntent(text) ||
+    isStrategyTemplateSuggestionIntent(text) ||
+    isLowGreetingIntent(text) ||
+    isTodayProgressIntent(text) ||
+    isTodayDataIntent(text) ||
+    isPendingCandidatesIntent(text) ||
+    isRecruitmentModelIntent(text) ||
+    isSearchStrategyIntent(text) ||
+    isManualRejectionIntent(text) ||
+    isRejectionReasonIntent(text) ||
+    isClarificationIntent(text) ||
+    isStartRecruitmentTaskIntent(text) ||
+    text in FIXED_CHAT_TEXT_REPLIES
+  )
 }

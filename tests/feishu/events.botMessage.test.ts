@@ -258,6 +258,40 @@ describe("bot message handler", () => {
     )
   })
 
+  it("sends markdown cards for newly added private chat keywords via bot message", async () => {
+    const im = fakeIm()
+    const handler = makeBotMessageHandler(im)
+    const cases = [
+      { text: "招呼数太少原因", title: "【HRBP】招呼数分析" },
+      { text: "查看今日执行进展", title: "【HRBP】今日执行进展" },
+      { text: "查看今日数据", title: "【HRBP】今日寻聘数据" },
+      { text: "查看待处理人员", title: "【HRBP】今日待处理候选人" },
+      { text: "查看寻聘模型", title: "【HRBP】寻聘模型" },
+    ] as const
+
+    for (const { text, title } of cases) {
+      vi.mocked(im.sendCardToUser).mockClear()
+      await handler(envelope({
+        sender: { sender_id: { open_id: "ou_1" } },
+        message: {
+          message_id: `om_${text}`,
+          chat_type: "p2p",
+          message_type: "text",
+          content: JSON.stringify({ text }),
+        },
+      }))
+
+      expect(im.sendCardToUser).toHaveBeenCalledWith(
+        "ou_1",
+        expect.objectContaining({
+          header: expect.objectContaining({
+            title: expect.objectContaining({ content: title }),
+          }),
+        }),
+      )
+    }
+  })
+
   it("ignores other p2p text without reply", async () => {
     const im = fakeIm()
     const onBindAccountAndSyncPositions = vi.fn().mockResolvedValue(undefined)

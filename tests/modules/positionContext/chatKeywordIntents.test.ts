@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 import {
   isClarificationIntent,
+  isChatKeywordIntent,
   isLowGreetingIntent,
   isManualRejectionIntent,
   isPendingCandidatesIntent,
@@ -35,11 +36,23 @@ describe("chat keyword intents", () => {
 
   it("matches new private chat keyword intents", () => {
     expect(isLowGreetingIntent("招呼数太少")).toBe(true)
+    expect(isLowGreetingIntent("招呼数太少原因")).toBe(true)
     expect(isTodayProgressIntent("查询今天执行进展")).toBe(true)
+    expect(isTodayProgressIntent("查看今日执行进展")).toBe(true)
     expect(isTodayDataIntent("查看今日数据")).toBe(true)
     expect(isPendingCandidatesIntent("今日待处理候选人")).toBe(true)
     expect(isPendingCandidatesIntent("查看待处理人员")).toBe(true)
     expect(isRecruitmentModelIntent("查看寻聘模型")).toBe(true)
+    expect(isRecruitmentModelIntent("寻聘模型")).toBe(true)
+  })
+
+  it("detects chat keyword intents for bot message routing", () => {
+    expect(isChatKeywordIntent("招呼数太少原因")).toBe(true)
+    expect(isChatKeywordIntent("查看今日执行进展")).toBe(true)
+    expect(isChatKeywordIntent("查看今日数据")).toBe(true)
+    expect(isChatKeywordIntent("查看待处理人员")).toBe(true)
+    expect(isChatKeywordIntent("查看寻聘模型")).toBe(true)
+    expect(isChatKeywordIntent("随便聊聊")).toBe(false)
   })
 
   it("matches search strategy keywords", () => {
