@@ -63,10 +63,12 @@ export {
   resolveNotificationOpenIds,
 } from "./sendNotification.js"
 export {
+  buildContactableCandidateAlertCard,
   buildCustomNotificationCard,
   buildFirstRoundSearchConfirmationCard,
   buildLowScreenRateAlertCard,
   buildSyncPositionReminderCard,
+  MOCK_CONTACTABLE_CANDIDATE_ALERT,
   MOCK_FIRST_ROUND_SEARCH_CONFIRMATION,
   MOCK_LOW_SCREEN_RATE_ALERT,
   MOCK_SYNC_POSITION_REMINDER,

@@ -63,6 +63,12 @@ export const MOCK_FIRST_ROUND_SEARCH_CONFIRMATION = {
   ].join("\n"),
 } as const
 
+export const MOCK_CONTACTABLE_CANDIDATE_ALERT = {
+  title: "有新的可联系候选人，请处理",
+  content:
+    "你负责的职位解决方案专家（ai agent 产品）-北京市下有一个新的可联系人选 李先生，请访问下面的地址查看：https://hrp.taient.com/candidate_detail?isCandidate=0&shareUid=3f7e4371-3bd8-4b8e-9d06-e87ca699f080",
+} as const
+
 export function buildLowScreenRateAlertCard() {
   const { title, content } = MOCK_LOW_SCREEN_RATE_ALERT
   return buildSimpleNotificationCard(title, content)
@@ -75,6 +81,11 @@ export function buildSyncPositionReminderCard() {
 
 export function buildFirstRoundSearchConfirmationCard() {
   const { title, content } = MOCK_FIRST_ROUND_SEARCH_CONFIRMATION
+  return buildSimpleNotificationCard(title, content)
+}
+
+export function buildContactableCandidateAlertCard() {
+  const { title, content } = MOCK_CONTACTABLE_CANDIDATE_ALERT
   return buildSimpleNotificationCard(title, content)
 }
 

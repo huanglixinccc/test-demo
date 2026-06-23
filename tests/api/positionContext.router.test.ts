@@ -85,6 +85,28 @@ describe("POST /api/position-context/*", () => {
     )
   })
 
+  it("sends contactable candidate alert card", async () => {
+    const im = fakeIm()
+    const app = appWithRouter(im)
+
+    const res = await request(app).post("/api/position-context/contactable-candidate-alert")
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ ok: true, openId: DEMO_NOTIFICATION_OPEN_ID })
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      DEMO_NOTIFICATION_OPEN_ID,
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({ content: "有新的可联系候选人，请处理" }),
+        }),
+      }),
+    )
+    expect(JSON.stringify(vi.mocked(im.sendCardToUser).mock.calls[0][1])).toContain("李先生")
+    expect(JSON.stringify(vi.mocked(im.sendCardToUser).mock.calls[0][1])).toContain(
+      "hrp.taient.com/candidate_detail",
+    )
+  })
+
   it("sends custom message from frontend payload", async () => {
     const im = fakeIm()
     const app = appWithRouter(im)

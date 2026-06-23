@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from "vitest"
 import {
+  buildContactableCandidateAlertCard,
   buildFirstRoundSearchConfirmationCard,
   buildLowScreenRateAlertCard,
   buildSyncPositionReminderCard,
+  MOCK_CONTACTABLE_CANDIDATE_ALERT,
   MOCK_FIRST_ROUND_SEARCH_CONFIRMATION,
   MOCK_LOW_SCREEN_RATE_ALERT,
   MOCK_SYNC_POSITION_REMINDER,
@@ -90,5 +92,12 @@ describe("notification cards", () => {
     expect(card.header.title.content).toBe(MOCK_FIRST_ROUND_SEARCH_CONFIRMATION.title)
     expect(JSON.stringify(card)).toContain("首轮人才寻访")
     expect(JSON.stringify(card)).toContain("候选人整体方向是否符合预期")
+  })
+
+  it("builds contactable candidate alert mock card", () => {
+    const card = buildContactableCandidateAlertCard()
+    expect(card.header.title.content).toBe(MOCK_CONTACTABLE_CANDIDATE_ALERT.title)
+    expect(JSON.stringify(card)).toContain("李先生")
+    expect(JSON.stringify(card)).toContain("hrp.taient.com/candidate_detail")
   })
 })
