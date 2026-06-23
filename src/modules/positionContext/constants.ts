@@ -23,3 +23,9 @@ export const MOCK_RECRUITMENT_STRATEGY_TEMPLATE = "锐捷—职能类职位"
 
 /** 私聊关键词触发的演示澄清职位名 */
 export const DEMO_CLARIFICATION_POSITION_NAME = "HRBP"
+
+/** 演示/手动触发通知的固定接收人 */
+export const DEMO_NOTIFICATION_OPEN_ID = "ou_79664ae0f2a5c43a42afeee7407632e3"
+
+/** 演示/手动触发通知的默认接收人姓名 */
+export const DEMO_NOTIFICATION_RECIPIENT_NAME = "李哲乐"

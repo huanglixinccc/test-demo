@@ -112,7 +112,7 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   app.use(
     "/api/position-context",
     dashboardCorsMiddleware(deps.dashboardCorsOrigins ?? ["*"]),
-    createPositionContextRouter({ im, defaultOpenIds: deps.hrOpenIds }),
+    createPositionContextRouter({ im }),
   )
 
   app.use(

@@ -13,6 +13,8 @@ export {
   SELECT_POSITION_ACTION,
   CLARIFICATION_H5_URL,
   DEMO_CLARIFICATION_POSITION_NAME,
+  DEMO_NOTIFICATION_OPEN_ID,
+  DEMO_NOTIFICATION_RECIPIENT_NAME,
 } from "./constants.js"
 export type { WorkspacePosition } from "./types.js"
 export { MOCK_RECRUITMENT_PLATFORMS, findRecruitmentPlatform } from "./mockPlatforms.js"
@@ -50,6 +52,20 @@ export {
   TriggerClarificationError,
   normalizeOpenIds,
 } from "./triggerClarification.js"
+export {
+  sendNotificationCard,
+  sendCustomNotification,
+  SendNotificationError,
+  resolveNotificationOpenId,
+  resolveNotificationOpenIds,
+} from "./sendNotification.js"
+export {
+  buildCustomNotificationCard,
+  buildLowScreenRateAlertCard,
+  buildSyncPositionReminderCard,
+  MOCK_LOW_SCREEN_RATE_ALERT,
+  MOCK_SYNC_POSITION_REMINDER,
+} from "./notificationCards.js"
 
 export function registerPositionContext(deps: {
   im: FeishuIM
