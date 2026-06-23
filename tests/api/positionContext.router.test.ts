@@ -62,6 +62,29 @@ describe("POST /api/position-context/*", () => {
     expect(JSON.stringify(vi.mocked(im.sendCardToUser).mock.calls[0][1])).toContain("同步职位提醒")
   })
 
+  it("sends first round search confirmation card", async () => {
+    const im = fakeIm()
+    const app = appWithRouter(im)
+
+    const res = await request(app).post("/api/position-context/first-round-search-confirmation")
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ ok: true, openId: DEMO_NOTIFICATION_OPEN_ID })
+    expect(im.sendCardToUser).toHaveBeenCalledWith(
+      DEMO_NOTIFICATION_OPEN_ID,
+      expect.objectContaining({
+        header: expect.objectContaining({
+          title: expect.objectContaining({
+            content: "【AI 产品经理】首轮寻访已完成，请确认候选人方向",
+          }),
+        }),
+      }),
+    )
+    expect(JSON.stringify(vi.mocked(im.sendCardToUser).mock.calls[0][1])).toContain(
+      "首轮人才寻访",
+    )
+  })
+
   it("sends custom message from frontend payload", async () => {
     const im = fakeIm()
     const app = appWithRouter(im)

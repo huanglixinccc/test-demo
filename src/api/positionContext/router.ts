@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express"
 import type { FeishuIM } from "../../feishu/im.js"
 import {
+  buildFirstRoundSearchConfirmationCard,
   buildLowScreenRateAlertCard,
   buildSyncPositionReminderCard,
 } from "../../modules/positionContext/notificationCards.js"
@@ -73,6 +74,23 @@ export function createPositionContextRouter(deps: { im: FeishuIM }): Router {
         const result = await sendNotificationCard(
           deps.im,
           buildSyncPositionReminderCard(),
+          openId,
+        )
+        res.json({ ok: true, ...result })
+      } catch (err) {
+        handleApiError(err, res, next, SendNotificationError)
+      }
+    },
+  )
+
+  router.post(
+    "/first-round-search-confirmation",
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const openId = resolveNotificationOpenId(req.body)
+        const result = await sendNotificationCard(
+          deps.im,
+          buildFirstRoundSearchConfirmationCard(),
           openId,
         )
         res.json({ ok: true, ...result })

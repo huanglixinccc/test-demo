@@ -4,6 +4,7 @@ import {
   LINK_POSITION_SELECT_ACTION,
   MOCK_RECRUITMENT_STRATEGY_TEMPLATE,
   RECRUITMENT_MODE_OPTIONS,
+  RECRUITMENT_OPEN_URL,
   START_CLARIFICATION_ACTION,
   START_RECRUITMENT_ACTION,
 } from "./constants.js"
@@ -26,6 +27,16 @@ function buildClarificationOpenUrlBehavior() {
     pc_url: buildFeishuSidebarOpenUrl(CLARIFICATION_H5_URL),
     android_url: CLARIFICATION_H5_URL,
     ios_url: CLARIFICATION_H5_URL,
+  } as const
+}
+
+function buildRecruitmentOpenUrlBehavior() {
+  return {
+    type: "open_url",
+    default_url: RECRUITMENT_OPEN_URL,
+    pc_url: buildFeishuSidebarOpenUrl(RECRUITMENT_OPEN_URL),
+    android_url: RECRUITMENT_OPEN_URL,
+    ios_url: RECRUITMENT_OPEN_URL,
   } as const
 }
 function buildPositionSelectOptions() {
@@ -138,35 +149,41 @@ export function buildClarificationCard(
 
 export function buildRecruitmentStrategyCard(positionName: string) {
   return {
+    schema: "2.0",
     config: { wide_screen_mode: true },
-    elements: [
-      {
-        tag: "div",
-        text: {
-          tag: "lark_md",
-          content: `**【${positionName}】寻聘策略已生成**`,
-        },
-      },
-      {
-        tag: "div",
-        text: {
-          tag: "plain_text",
-          content: `已自动匹配【${MOCK_RECRUITMENT_STRATEGY_TEMPLATE}】策略模板，可以开启寻聘了。`,
-        },
-      },
-      {
-        tag: "action",
-        actions: RECRUITMENT_MODE_OPTIONS.map((mode) => ({
-          tag: "button",
-          text: { tag: "plain_text", content: mode },
-          type: "default",
-          value: {
-            action: START_RECRUITMENT_ACTION,
-            positionName,
-            mode,
+    body: {
+      elements: [
+        {
+          tag: "div",
+          text: {
+            tag: "lark_md",
+            content: `**【${positionName}】寻聘策略已生成**`,
           },
+        },
+        {
+          tag: "div",
+          text: {
+            tag: "plain_text",
+            content: `已自动匹配【${MOCK_RECRUITMENT_STRATEGY_TEMPLATE}】策略模板，可以开启寻聘了。`,
+          },
+        },
+        ...RECRUITMENT_MODE_OPTIONS.map((mode) => ({
+          tag: "button",
+          type: "default",
+          text: { tag: "plain_text", content: mode },
+          behaviors: [
+            buildRecruitmentOpenUrlBehavior(),
+            {
+              type: "callback",
+              value: {
+                action: START_RECRUITMENT_ACTION,
+                positionName,
+                mode,
+              },
+            },
+          ],
         })),
-      },
-    ],
+      ],
+    },
   }
 }

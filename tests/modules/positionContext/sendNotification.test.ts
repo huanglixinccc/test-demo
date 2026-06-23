@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from "vitest"
 import {
+  buildFirstRoundSearchConfirmationCard,
   buildLowScreenRateAlertCard,
   buildSyncPositionReminderCard,
+  MOCK_FIRST_ROUND_SEARCH_CONFIRMATION,
   MOCK_LOW_SCREEN_RATE_ALERT,
   MOCK_SYNC_POSITION_REMINDER,
 } from "../../../src/modules/positionContext/notificationCards.js"
@@ -81,5 +83,12 @@ describe("notification cards", () => {
     const card = buildSyncPositionReminderCard()
     expect(card.header.title.content).toBe(MOCK_SYNC_POSITION_REMINDER.title)
     expect(JSON.stringify(card)).toContain("3 个新职位")
+  })
+
+  it("builds first round search confirmation mock card", () => {
+    const card = buildFirstRoundSearchConfirmationCard()
+    expect(card.header.title.content).toBe(MOCK_FIRST_ROUND_SEARCH_CONFIRMATION.title)
+    expect(JSON.stringify(card)).toContain("首轮人才寻访")
+    expect(JSON.stringify(card)).toContain("候选人整体方向是否符合预期")
   })
 })

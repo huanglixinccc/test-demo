@@ -10,6 +10,7 @@ import {
   LINK_POSITION_SELECT_ACTION,
   MOCK_RECRUITMENT_STRATEGY_TEMPLATE,
   RECRUITMENT_MODE_OPTIONS,
+  RECRUITMENT_OPEN_URL,
   START_CLARIFICATION_ACTION,
   START_RECRUITMENT_ACTION,
 } from "../../../src/modules/positionContext/constants.js"
@@ -54,25 +55,27 @@ describe("link position card", () => {
     expect(serialized).toContain('"type":"callback"')
   })
 
-  it("builds recruitment strategy card with three mode buttons", () => {
+  it("builds recruitment strategy card with three mode buttons and open_url", () => {
     const card = buildRecruitmentStrategyCard("前端工程师")
     const serialized = JSON.stringify(card)
 
+    expect(card.schema).toBe("2.0")
     expect(serialized).toContain("【前端工程师】寻聘策略已生成")
     expect(serialized).toContain(`已自动匹配【${MOCK_RECRUITMENT_STRATEGY_TEMPLATE}】策略模板，可以开启寻聘了。`)
+    expect(serialized).toContain(RECRUITMENT_OPEN_URL)
+    expect(serialized).toContain('"type":"open_url"')
     for (const mode of RECRUITMENT_MODE_OPTIONS) {
       expect(serialized).toContain(mode)
     }
     expect(serialized).toContain(START_RECRUITMENT_ACTION)
-    expect(card.elements.at(-1)).toEqual(
+    expect(card.body.elements.at(-1)).toEqual(
       expect.objectContaining({
-        actions: expect.arrayContaining(
-          RECRUITMENT_MODE_OPTIONS.map((mode) =>
-            expect.objectContaining({
-              text: expect.objectContaining({ content: mode }),
-            }),
-          ),
-        ),
+        tag: "button",
+        text: expect.objectContaining({ content: RECRUITMENT_MODE_OPTIONS[2] }),
+        behaviors: expect.arrayContaining([
+          expect.objectContaining({ type: "open_url" }),
+          expect.objectContaining({ type: "callback" }),
+        ]),
       }),
     )
   })

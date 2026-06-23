@@ -47,6 +47,22 @@ export const MOCK_SYNC_POSITION_REMINDER = {
   ].join("\n"),
 } as const
 
+export const MOCK_FIRST_ROUND_SEARCH_CONFIRMATION = {
+  title: "【AI 产品经理】首轮寻访已完成，请确认候选人方向",
+  content: [
+    "您好，系统已根据当前职位画像完成首轮人才寻访。",
+    "",
+    "请您重点确认：",
+    "• 候选人整体方向是否符合预期",
+    "• 行业、公司和岗位背景是否准确",
+    "• 核心能力要求是否需要调整",
+    "• 薪资、年限、学历等条件是否需要放宽",
+    "• 是否存在需要排除的人才类型",
+    "",
+    "确认后，系统将根据您的反馈更新职位画像，并继续执行下一轮寻访。",
+  ].join("\n"),
+} as const
+
 export function buildLowScreenRateAlertCard() {
   const { title, content } = MOCK_LOW_SCREEN_RATE_ALERT
   return buildSimpleNotificationCard(title, content)
@@ -54,6 +70,11 @@ export function buildLowScreenRateAlertCard() {
 
 export function buildSyncPositionReminderCard() {
   const { title, content } = MOCK_SYNC_POSITION_REMINDER
+  return buildSimpleNotificationCard(title, content)
+}
+
+export function buildFirstRoundSearchConfirmationCard() {
+  const { title, content } = MOCK_FIRST_ROUND_SEARCH_CONFIRMATION
   return buildSimpleNotificationCard(title, content)
 }
 

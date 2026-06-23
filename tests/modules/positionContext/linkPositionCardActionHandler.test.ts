@@ -139,13 +139,16 @@ describe("link position card action handler", () => {
     expect(im.sendCardToUser).toHaveBeenCalledWith(
       "ou_hr",
       expect.objectContaining({
-        elements: expect.arrayContaining([
-          expect.objectContaining({
-            text: expect.objectContaining({
-              content: expect.stringContaining("【前端工程师】寻聘策略已生成"),
+        schema: "2.0",
+        body: expect.objectContaining({
+          elements: expect.arrayContaining([
+            expect.objectContaining({
+              text: expect.objectContaining({
+                content: expect.stringContaining("【前端工程师】寻聘策略已生成"),
+              }),
             }),
-          }),
-        ]),
+          ]),
+        }),
       }),
     )
   })

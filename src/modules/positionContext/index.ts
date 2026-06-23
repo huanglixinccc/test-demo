@@ -15,6 +15,7 @@ export {
   DEMO_CLARIFICATION_POSITION_NAME,
   DEMO_NOTIFICATION_OPEN_ID,
   DEMO_NOTIFICATION_RECIPIENT_NAME,
+  RECRUITMENT_OPEN_URL,
 } from "./constants.js"
 export type { WorkspacePosition } from "./types.js"
 export { MOCK_RECRUITMENT_PLATFORMS, findRecruitmentPlatform } from "./mockPlatforms.js"
@@ -63,8 +64,10 @@ export {
 } from "./sendNotification.js"
 export {
   buildCustomNotificationCard,
+  buildFirstRoundSearchConfirmationCard,
   buildLowScreenRateAlertCard,
   buildSyncPositionReminderCard,
+  MOCK_FIRST_ROUND_SEARCH_CONFIRMATION,
   MOCK_LOW_SCREEN_RATE_ALERT,
   MOCK_SYNC_POSITION_REMINDER,
 } from "./notificationCards.js"

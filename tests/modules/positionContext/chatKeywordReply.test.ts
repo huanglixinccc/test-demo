@@ -67,20 +67,20 @@ describe("dispatchChatKeywordReply", () => {
     expect(im.sendCardToUser).toHaveBeenCalledWith(
       "ou_1",
       expect.objectContaining({
-        elements: expect.arrayContaining([
-          expect.objectContaining({
-            text: expect.objectContaining({
-              content: expect.stringContaining("【HRBP】寻聘策略已生成"),
-            }),
-          }),
-          expect.objectContaining({
-            actions: expect.arrayContaining([
-              expect.objectContaining({
-                text: expect.objectContaining({ content: "仅人岗匹配" }),
+        schema: "2.0",
+        body: expect.objectContaining({
+          elements: expect.arrayContaining([
+            expect.objectContaining({
+              text: expect.objectContaining({
+                content: expect.stringContaining("【HRBP】寻聘策略已生成"),
               }),
-            ]),
-          }),
-        ]),
+            }),
+            expect.objectContaining({
+              tag: "button",
+              text: expect.objectContaining({ content: "仅人岗匹配" }),
+            }),
+          ]),
+        }),
       }),
     )
     expect(im.sendTextToUser).not.toHaveBeenCalled()
