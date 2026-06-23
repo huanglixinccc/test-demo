@@ -39,7 +39,8 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   const { registerAnalyticsAgent } = await import("./agents/analytics/index.js")
   const { registerJdMatchAgent } = await import("./agents/jdMatch/index.js")
   const { startInterviewWatchdog } = await import("./scheduler/interviewWatchdog.js")
-  const { createDashboardRouter, dashboardCorsMiddleware } = await import("./api/dashboard/router.js")
+  const { createPositionContextRouter } = await import("./api/positionContext/router.js")
+  const { dashboardCorsMiddleware } = await import("./api/dashboard/router.js")
   const { FeishuVC } = await import("./feishu/vc.js")
 
   const app = express()
@@ -107,6 +108,12 @@ export async function createWiredApp(deps: AppDeps): Promise<express.Express> {
   app.get("/health", (_req, res) => {
     res.json({ ok: true, ts: Date.now() })
   })
+
+  app.use(
+    "/api/position-context",
+    dashboardCorsMiddleware(deps.dashboardCorsOrigins ?? ["*"]),
+    createPositionContextRouter({ im, defaultOpenIds: deps.hrOpenIds }),
+  )
 
   app.use(
     "/webhook",

@@ -45,6 +45,11 @@ export {
   isTaskClosedIntent,
 } from "./chatKeywordIntents.js"
 export { sendPositionSelectCard } from "./sendPositionSelectCard.js"
+export {
+  triggerClarification,
+  TriggerClarificationError,
+  normalizeOpenIds,
+} from "./triggerClarification.js"
 
 export function registerPositionContext(deps: {
   im: FeishuIM

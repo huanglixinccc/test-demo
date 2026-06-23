@@ -57,10 +57,7 @@ export async function dispatchChatKeywordReply(
 
   if (isClarificationIntent(text)) {
     logger.info({ openId, positionName: DEMO_CLARIFICATION_POSITION_NAME }, "chatKeyword.clarification")
-    await im.sendCardToUser(
-      openId,
-      buildClarificationCard(DEMO_CLARIFICATION_POSITION_NAME, { buttonType: "default_text" }),
-    )
+    await im.sendCardToUser(openId, buildClarificationCard(DEMO_CLARIFICATION_POSITION_NAME))
     return
   }
 

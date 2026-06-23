@@ -140,9 +140,7 @@ export const TASK_CLOSED_LINK_ACTION = "task_closed_link"
 
 export const TASK_CLOSED_LINKS = [
   { label: "查询今日进展", message: "寻聘数据" },
-  { label: "查看职位画像", message: "查看职位画像" },
-  { label: "招呼数太少原因", message: "招呼数太少原因" },
-  { label: "淘汰理由分析", message: "淘汰理由分析" },
+  { label: "查看待处理人员", message: "查看待处理人员" },
   { label: "寻聘策略修改建议", message: "寻聘策略修改建议" },
 ] as const
 
@@ -162,13 +160,6 @@ export function buildTaskClosedCard() {
       title: { tag: "plain_text", content: "【HRBP】寻聘任务已关闭" },
     },
     elements: [
-      {
-        tag: "div",
-        text: {
-          tag: "plain_text",
-          content: TASK_CLOSED_LINKS.map((link) => link.label).join(" 丨 "),
-        },
-      },
       {
         tag: "action",
         actions: TASK_CLOSED_LINKS.map((link) => ({
